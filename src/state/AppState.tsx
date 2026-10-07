@@ -6,7 +6,9 @@ import type {
   CircleMessage,
   CreateForm,
   DiscussionMessage,
+  NotificationPrefs,
   Prayer,
+  ProfileView,
   Screen,
   Tab,
   WallPrayer,
@@ -57,9 +59,12 @@ export interface AppState {
   createForm: CreateForm;
 
   // Profile
+  profileView: ProfileView;
   editingProfile: boolean;
   avatar: string | null; // profile photo as a data URL
-  notifications: boolean;
+  notifications: boolean; // master switch; the per-type prefs only apply while it's on
+  notificationPrefs: NotificationPrefs;
+  showNameInDiscussions: boolean;
   darkMode: boolean; // remembered on this device
 }
 
@@ -107,7 +112,15 @@ export const initialState = (): AppState => ({
     count: 42,
     prayed: false,
   },
-  prayers: [{ id: 1, text: 'Praying for clarity on a big decision I have to make this month.', status: 'current' }],
+  // Sample prayer so the Prayers page has something to show while accounts don't exist yet.
+  prayers: [
+    {
+      id: 1,
+      text: 'Praying for clarity on a big decision I have to make this month.',
+      status: 'current',
+      createdAt: Date.now() - 3 * 86_400_000,
+    },
+  ],
   myPrayerDraft: '',
   myPrayerAnonymous: false,
   discussionSearch: '',
@@ -124,9 +137,12 @@ export const initialState = (): AppState => ({
   circleSearch: '',
   circleFilters: [],
   createForm: emptyCreateForm(),
+  profileView: 'main',
   editingProfile: false,
   avatar: null,
   notifications: true,
+  notificationPrefs: { dailyVerse: true, prayerReminders: true, circleMessages: true, discussionReplies: false },
+  showNameInDiscussions: true,
   darkMode: loadDarkMode(),
 });
 

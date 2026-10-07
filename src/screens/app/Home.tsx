@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../../components/Icon';
-import { BottomSheet } from '../../components/Overlays';
+import { Logo } from '../../components/Logo';
+import { PrayerRequestSheet } from '../../components/PrayerRequestSheet';
 import { SCRIPTURE_OF_DAY, STRUGGLES } from '../../data';
 import { useStore } from '../../state/AppState';
 import { firstName } from '../../utils';
-import { FISH_PATH, LETTERS_PATH } from '../onboarding/introShapes';
 
 // Two struggles from the onboarding list, changing each day (the same for everyone)
 function struggleOfTheDay() {
@@ -14,46 +14,6 @@ function struggleOfTheDay() {
   const first = list[day % list.length];
   const second = list[(day + 3) % list.length];
   return [first.toLowerCase(), second.toLowerCase()];
-}
-
-function PrayerRequestSheet({ onClose }: { onClose: () => void }) {
-  const { state, update } = useStore();
-
-  const share = () => {
-    const text = state.myPrayerDraft.trim();
-    if (!text) return;
-    update((s) => ({
-      prayers: [{ id: Date.now(), text, status: 'current' }, ...s.prayers],
-      myPrayerDraft: '',
-    }));
-    onClose();
-  };
-
-  return (
-    <BottomSheet title="Submit a Prayer Request" onClose={onClose}>
-      <div className="sheet-body">
-        <textarea
-          className="field-input"
-          placeholder="What's on your heart today?"
-          value={state.myPrayerDraft}
-          onChange={(e) => update({ myPrayerDraft: e.target.value })}
-        />
-        <div className="prayer-options">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={state.myPrayerAnonymous}
-              onChange={(e) => update({ myPrayerAnonymous: e.target.checked })}
-            />{' '}
-            Post anonymously
-          </label>
-        </div>
-        <button className="btn-primary sheet-submit" onClick={share}>
-          Share Prayer Request
-        </button>
-      </div>
-    </BottomSheet>
-  );
 }
 
 export function Home() {
@@ -128,11 +88,7 @@ export function Home() {
       <header className="app-topbar">
         <div className="topbar-left">
           <div className="topbar-logo">
-            {/* same drawn logo as the intro; fish and lettering share one coordinate space */}
-            <svg className="topbar-logo-svg" viewBox="33 72 349 114" role="img" aria-label="Selah logo">
-              <path className="logo-fish-path" fillRule="evenodd" d={FISH_PATH} />
-              <path className="logo-letters-path" fillRule="evenodd" d={LETTERS_PATH} />
-            </svg>
+            <Logo className="topbar-logo-svg" />
           </div>
           <div>
             <div className="welcome-name">Welcome, {firstName(state.name)}</div>

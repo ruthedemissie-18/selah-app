@@ -51,6 +51,45 @@ const PATHS = {
     </>
   ),
   send: <path d="M4 12 20 4l-6 16-3-7-7-1Z" {...round} />,
+  chevronright: <path d="m10 7 5 5-5 5" {...round} />,
+  bell: (
+    <path
+      d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 20.5a2.2 2.2 0 0 0 4 0"
+      {...round}
+    />
+  ),
+  moon: <path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10Z" {...round} />,
+  gear: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path
+        d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"
+        {...round}
+      />
+      <circle cx="12" cy="12" r="6.6" />
+    </>
+  ),
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.7M12 17h.01" {...round} />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="17.5" cy="6" r="2.5" />
+      <circle cx="6.5" cy="12" r="2.5" />
+      <circle cx="17.5" cy="18" r="2.5" />
+      <path d="m8.7 10.8 6.6-3.6M8.7 13.2l6.6 3.6" {...round} />
+    </>
+  ),
+  dots: (
+    <>
+      <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" {...round} />,
   search: (
     <>

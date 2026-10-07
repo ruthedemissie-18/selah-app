@@ -47,6 +47,20 @@ export interface Prayer {
   id: number;
   text: string;
   status: 'current' | 'answered';
+  /** Epoch ms when the prayer was added. */
+  createdAt: number;
+  /** Epoch ms when it was marked answered. */
+  answeredAt?: number;
+}
+
+/** Sub-pages reached from the Profile tab. */
+export type ProfileView = 'main' | 'prayers' | 'settings' | 'help' | 'about';
+
+export interface NotificationPrefs {
+  dailyVerse: boolean;
+  prayerReminders: boolean;
+  circleMessages: boolean;
+  discussionReplies: boolean;
 }
 
 export interface WallPrayer {

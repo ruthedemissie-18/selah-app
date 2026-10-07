@@ -13,7 +13,7 @@
   --ink-soft: #6b6455;
   --white: #ffffff;
   --line: #e7ddce;
-  --danger: #b3543e;
+  --danger: #b5503a;
   --muted: #ede6dc;
   --accent: #e8c39e;
   --on-olive: var(--white); /* text on solid olive / sage buttons */
@@ -69,6 +69,10 @@
   --chip-off-text: var(--on-olive);
   --bubble-in-bg: var(--white);
   --chat-day-bg: var(--wash);
+  --toast-bg: var(--ink);
+  --toast-text: var(--cream);
+  --toast-action: var(--streak-bg);
+  --on-danger: var(--white);
 }
 
 /* =========================================================
@@ -572,9 +576,6 @@ textarea.field-input {
   justify-content: space-between;
   padding: 38px 20px 6px;
 }
-.page-title {
-  font-size: 20px;
-}
 .topbar-left {
   display: flex;
   align-items: center;
@@ -861,7 +862,7 @@ textarea.field-input {
   margin-top: 12px;
 }
 .sheet-submit {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 /* =========================================================
@@ -1702,10 +1703,13 @@ textarea.field-input {
    Profile
    ========================================================= */
 .profile-identity {
-  padding-top: 0;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.profile-identity-text {
+  min-width: 0;
 }
 .avatar-circle {
   width: 64px;
@@ -1752,7 +1756,8 @@ textarea.field-input {
   position: relative;
   flex-shrink: 0;
 }
-.avatar-menu {
+.avatar-menu,
+.popover-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -1766,7 +1771,8 @@ textarea.field-input {
   display: flex;
   flex-direction: column;
 }
-.avatar-menu button {
+.avatar-menu button,
+.popover-menu button {
   text-align: left;
   padding: 10px 12px;
   border-radius: 9px;
@@ -1775,10 +1781,13 @@ textarea.field-input {
   color: var(--ink);
 }
 .avatar-menu button:hover,
-.avatar-menu button:focus-visible {
+.avatar-menu button:focus-visible,
+.popover-menu button:hover,
+.popover-menu button:focus-visible {
   background: var(--wash);
 }
-.avatar-menu button.danger {
+.avatar-menu button.danger,
+.popover-menu button.danger {
   color: var(--danger);
 }
 .avatar-error {
@@ -1792,61 +1801,385 @@ textarea.field-input {
 }
 .profile-name {
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
 }
 .profile-location {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--ink-soft);
   margin-top: 2px;
 }
-.toggle-pills {
-  display: flex;
-  gap: 6px;
-  margin: 0 20px 8px;
+
+/* Profile layout & sub-pages (Prayers, Settings, Help, About) */
+.subpage {
+  padding: 38px 20px 0;
 }
-.toggle-pills.flush {
-  margin: 0 0 10px;
+.subpage .card {
+  margin: 0 0 12px;
 }
-.toggle-pill {
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12.5px;
+.profile-title {
+  font-family: var(--serif);
+  font-size: 24px;
   font-weight: 700;
+  margin-bottom: 16px;
+}
+.profile-edit-btn {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.round-back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.round-back-btn svg {
+  width: 17px;
+  height: 17px;
+}
+.page-header-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+}
+.section-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 16px 4px 8px;
+}
+.menu-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 16px;
+  text-align: left;
+  color: var(--ink);
+  text-decoration: none;
+  border-top: 1px solid var(--line);
+}
+.menu-row:first-child {
+  border-top: 0;
+}
+button.menu-row:active,
+a.menu-row:active {
+  background: var(--wash);
+}
+.menu-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--cream);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.menu-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.menu-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-title {
+  font-size: 15px;
+}
+.menu-sub {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.menu-row.danger .menu-title {
+  color: var(--danger);
+}
+.menu-row.disabled .menu-text {
+  opacity: 0.45;
+}
+.logout-btn {
+  width: 100%;
+  height: 44px;
+  margin-top: 24px;
+  border: 1.5px solid var(--danger);
+  border-radius: 14px;
+  color: var(--danger);
+  font-size: 15px;
+  font-weight: 600;
+}
+.app-version {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+
+/* Prayers page */
+.pill-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pill-tab {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
   border: 1.5px solid var(--line);
+  background: var(--white);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--ink-soft);
 }
-.toggle-pill.on {
+.pill-tab.on {
   background: var(--olive);
   border-color: var(--olive);
   color: var(--on-olive);
 }
-.prayer-item {
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  font-size: 13.5px;
+.prayer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.prayer-item-action {
+.prayer-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+}
+.prayer-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.prayer-card-text {
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.prayer-card-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+.prayer-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.heart-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--walnut);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.heart-btn svg {
+  width: 18px;
+  height: 18px;
+}
+/* The heart fills in when moving to Answered and empties when moving back */
+.heart-btn svg path {
+  fill: currentColor;
+  fill-opacity: 0;
+  transition: fill-opacity 0.3s ease;
+}
+.heart-btn.filled svg path,
+.heart-btn.filling svg path {
+  fill-opacity: 1;
+}
+.heart-btn.filled.filling svg path {
+  fill-opacity: 0;
+}
+.heart-btn.filling svg {
+  animation: heart-pop 0.35s ease;
+}
+@keyframes heart-pop {
+  50% {
+    transform: scale(1.25);
+  }
+}
+.dots-wrap {
+  position: relative;
+}
+.dots-btn {
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dots-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.popover-menu {
+  left: auto;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 140px;
+}
+.add-prayer-btn {
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
   margin-top: 6px;
 }
-.settings-card {
-  padding: 0;
-  overflow: hidden;
+.empty-card {
+  background: var(--white);
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-soft);
 }
-.settings-row {
+
+/* Help & About */
+.faq-item + .faq-item {
+  border-top: 1px solid var(--line);
+}
+.faq-item summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary::after {
+  content: '+';
+  font-size: 18px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.faq-item[open] summary::after {
+  content: '\2013';
+}
+.faq-item p {
+  padding: 0 16px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.about-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 20px;
+  text-align: center;
+}
+.about-logo {
+  width: 160px;
+  margin: 0 auto 12px;
+}
+.about-logo-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.about-version {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.about-mission {
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 12px 0 16px;
+}
+.about-credit {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* Toast: a dark message above the tab bar, e.g. "Moved to Answered" with Undo */
+.toast {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 102px;
+  z-index: 70;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  font-size: 14.5px;
+  box-shadow: var(--menu-shadow);
+  animation: toast-in 0.2s ease;
 }
-.settings-row:last-child {
-  border-bottom: none;
+.toast-action {
+  color: var(--toast-action);
+  font-weight: 700;
+  font-size: 14.5px;
+  flex-shrink: 0;
 }
-.settings-value {
-  color: var(--ink-soft);
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (max-width: 520px) {
+  .subpage {
+    padding-top: 16px;
+  }
+  .toast {
+    bottom: calc(102px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* =========================================================
@@ -1968,6 +2301,15 @@ textarea.field-input {
 .modal-btn-ghost {
   background: var(--cream);
   color: var(--ink);
+}
+.modal-btn-danger {
+  flex: 1;
+  padding: 13px;
+  border-radius: 13px;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--danger);
+  color: var(--on-danger);
 }
 .modal-btn-solid {
   background: var(--olive);
@@ -2119,6 +2461,10 @@ textarea.field-input {
   --bubble-in-bg: #302622; /* raised surface, so bubbles stand off the background */
   --chat-day-bg: rgba(243, 237, 227, 0.08);
   --amen-bg: rgba(232, 169, 79, 0.14);
+  --toast-bg: #3a302b;
+  --toast-text: #f3ede3;
+  --toast-action: #e3b47e;
+  --on-danger: #181412;
   color-scheme: dark;
 }
 @media (max-width: 520px) {
@@ -2146,10 +2492,30 @@ textarea.field-input {
 }
 
 /* Dark mode switch (Profile settings) */
+.switch-hit {
+  min-width: 46px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.switch-hit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.switch-hit:focus-visible {
+  outline: none;
+}
+.switch-hit:focus-visible .switch {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
+}
 .switch {
   position: relative;
-  width: 44px;
-  height: 26px;
+  display: block;
+  width: 46px;
+  height: 28px;
   border-radius: 999px;
   background: var(--line);
   flex-shrink: 0;
@@ -2160,17 +2526,17 @@ textarea.field-input {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--switch-knob);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.2s ease;
 }
-.switch[aria-checked='true'] {
+.switch-hit[aria-checked='true'] .switch {
   background: var(--olive);
 }
-.switch[aria-checked='true']::after {
+.switch-hit[aria-checked='true'] .switch::after {
   transform: translateX(18px);
   background: var(--switch-knob-on);
 }

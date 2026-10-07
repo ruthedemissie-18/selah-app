@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Icon } from '../../components/Icon';
 import { LocationFields } from '../../components/LocationFields';
+import { CenterModal, Toast, type ToastData } from '../../components/Overlays';
+import { MenuCard, MenuRow, SectionLabel, Switch } from '../../components/ProfileUI';
 import {
   checkPhotoFile,
   resizePhoto,
@@ -11,18 +13,11 @@ import {
 } from '../../services/profile';
 import { useStore } from '../../state/AppState';
 import { initials } from '../../utils';
+import { AboutPage, APP_VERSION, HelpPage } from './InfoPages';
+import { Prayers } from './Prayers';
+import { Settings } from './Settings';
 
-type SwitchKey = 'darkMode' | 'notifications';
-
-const SWITCHES: { key: SwitchKey; label: string }[] = [
-  { key: 'darkMode', label: 'Dark Mode' },
-  { key: 'notifications', label: 'Notifications' },
-];
-
-const SETTINGS = [
-  { label: 'Privacy', value: 'Manage' },
-  { label: 'Account', value: 'Manage' },
-];
+const SHARE_MESSAGE = 'Join me on Selah, a space to pray, study Scripture and grow together.';
 
 /** Avatar with a camera badge. With no photo a tap opens the file picker; with one it opens a small menu. */
 function AvatarPicker() {
@@ -149,85 +144,121 @@ function EditProfileForm({ onDone }: { onDone: () => void }) {
 }
 
 export function Profile() {
+  switch (useStore().state.profileView) {
+    case 'prayers':
+      return <Prayers />;
+    case 'settings':
+      return <Settings />;
+    case 'help':
+      return <HelpPage />;
+    case 'about':
+      return <AboutPage />;
+    default:
+      return <ProfileMain />;
+  }
+}
+
+function ProfileMain() {
   const { state, update, reset } = useStore();
-  const current = state.prayers.filter((p) => p.status === 'current');
-  const answered = state.prayers.filter((p) => p.status === 'answered');
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const unanswered = state.prayers.filter((p) => p.status === 'current').length;
+  const answered = state.prayers.length - unanswered;
 
-  const toggle = (key: SwitchKey) => update((s) => ({ [key]: !s[key] }));
-
-  const markAnswered = (id: number) =>
-    update((s) => ({ prayers: s.prayers.map((p) => (p.id === id ? { ...p, status: 'answered' } : p)) }));
+  const share = async () => {
+    const url = window.location.origin;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Selah', text: SHARE_MESSAGE, url });
+      } catch {
+        // the user closed the share sheet
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(`${SHARE_MESSAGE} ${url}`);
+      setToast({ id: Date.now(), message: 'Link copied' });
+    } catch {
+      setToast({ id: Date.now(), message: "Couldn't copy the link" });
+    }
+  };
 
   return (
-    <>
-      <header className="app-topbar">
-        <h2 className="page-title">Profile</h2>
-      </header>
+    <div className="subpage">
+      <h2 className="profile-title">Profile</h2>
 
-      <div className="pad profile-identity">
+      <div className="profile-identity">
         <AvatarPicker />
-        <div>
+        <div className="profile-identity-text">
           <div className="profile-name">{state.name || 'Friend'}</div>
           <div className="profile-location">{state.location || 'Location not set'}</div>
         </div>
       </div>
 
-      <div className="pad flush-top">
-        <button className="btn-ghost" onClick={() => update((s) => ({ editingProfile: !s.editingProfile }))}>
-          {state.editingProfile ? 'Close' : 'Edit Profile'}
-        </button>
-      </div>
+      <button className="btn-ghost profile-edit-btn" onClick={() => update((s) => ({ editingProfile: !s.editingProfile }))}>
+        {state.editingProfile ? 'Close' : 'Edit Profile'}
+      </button>
 
       {state.editingProfile && <EditProfileForm onDone={() => update({ editingProfile: false })} />}
 
-      <div className="card">
-        <div className="card-title">Prayers</div>
-        <div className="toggle-pills flush">
-          <span className="toggle-pill on">Current ({current.length})</span>
-          <span className="toggle-pill">Answered ({answered.length})</span>
-        </div>
-        {current.length ? (
-          current.map((p) => (
-            <div key={p.id} className="prayer-item">
-              {p.text}
-              <div className="prayer-item-action">
-                <button className="btn-link" onClick={() => markAnswered(p.id)}>
-                  Mark as answered
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="empty-note">No current prayers.</div>
-        )}
-      </div>
+      <MenuCard>
+        <MenuRow
+          icon="heart"
+          title="Prayers"
+          subtitle={`${unanswered} unanswered · ${answered} answered`}
+          onClick={() => update({ profileView: 'prayers' })}
+        />
+      </MenuCard>
 
-      <div className="card settings-card">
-        {SWITCHES.map(({ key, label }) => (
-          <div key={key} className="settings-row">
-            <span id={`${key}-label`}>{label}</span>
-            <button
-              className="switch"
-              role="switch"
-              aria-checked={state[key]}
-              aria-labelledby={`${key}-label`}
-              onClick={() => toggle(key)}
-            />
-          </div>
-        ))}
-        {SETTINGS.map(({ label, value }) => (
-          <div key={label} className="settings-row">
-            <span>{label}</span>
-            <span className="settings-value">{value}</span>
-          </div>
-        ))}
-      </div>
+      <SectionLabel>Preferences</SectionLabel>
+      <MenuCard>
+        <MenuRow
+          icon="bell"
+          title="Notifications"
+          trailing={
+            <Switch label="Notifications" checked={state.notifications} onChange={(v) => update({ notifications: v })} />
+          }
+        />
+        <MenuRow
+          icon="moon"
+          title="Dark Mode"
+          trailing={<Switch label="Dark Mode" checked={state.darkMode} onChange={(v) => update({ darkMode: v })} />}
+        />
+        <MenuRow
+          icon="gear"
+          title="Settings"
+          subtitle="Notification types, privacy, account"
+          onClick={() => update({ profileView: 'settings' })}
+        />
+      </MenuCard>
 
-      <div className="pad flush-top">
-        <button className="btn-ghost btn-danger" onClick={reset}>
-          Log Out
-        </button>
-      </div>
-    </>
+      <SectionLabel>Support</SectionLabel>
+      <MenuCard>
+        <MenuRow icon="help" title="Help & Support" onClick={() => update({ profileView: 'help' })} />
+        <MenuRow icon="share" title="Share Selah" subtitle="Invite a friend to your circle" onClick={share} />
+        <MenuRow icon="info" title="About Selah" onClick={() => update({ profileView: 'about' })} />
+      </MenuCard>
+
+      <button className="logout-btn" onClick={() => setConfirmLogout(true)}>
+        Log Out
+      </button>
+      <div className="app-version">{APP_VERSION}</div>
+
+      {confirmLogout && (
+        <CenterModal onClose={() => setConfirmLogout(false)}>
+          <h2 className="modal-title">Log out of Selah?</h2>
+          <div className="center-modal-actions">
+            <button className="modal-btn-ghost" onClick={() => setConfirmLogout(false)}>
+              Cancel
+            </button>
+            <button className="modal-btn-danger" onClick={reset}>
+              Log out
+            </button>
+          </div>
+        </CenterModal>
+      )}
+
+      {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
+    </div>
   );
 }

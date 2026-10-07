@@ -1,0 +1,32 @@
+<!doctype html><html><body style="margin:0;display:flex;gap:10px;background:#888">
+<iframe id="a" src="/__preview.html" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="b" src="/__preview.html?dark" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="c" src="/__preview.html?view=prayers" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="d" src="/__preview.html?view=prayers&dark" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="e" src="/__preview.html?view=settings" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="f" src="/__preview.html?view=help&dark" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<iframe id="g" src="/__preview.html?view=about" style="width:390px;height:844px;border:0;flex:none"></iframe>
+<pre id="out" style="position:fixed;top:0;left:0;background:#fff;margin:0;font:12px monospace;z-index:9"></pre>
+<script>
+const doc = (id) => document.getElementById(id).contentDocument;
+setTimeout(() => {
+  doc('c').querySelector('.heart-btn').click();                       // light: mark first prayer answered -> toast
+  doc('d').querySelectorAll('.pill-tab')[1].click();                  // dark: Answered tab
+  doc('f').querySelector('.faq-item summary').click();                // dark help: open first FAQ
+  const b = doc('b').querySelector('.app-body'); b.scrollTop = b.scrollHeight;  // dark profile: scroll to bottom
+}, 2500);
+setTimeout(() => {
+  const r = [];
+  for (const id of ['a','b','c','d','e','f','g']) {
+    const d = doc(id), de = d.documentElement;
+    let over = 0; for (const el of d.querySelectorAll('.app-body *')) if (el.getBoundingClientRect().right > de.clientWidth + 0.5) over++;
+    let extra = '';
+    const lo = d.querySelector('.logout-btn'), tab = d.querySelector('.tabbar');
+    if (lo && id === 'b') extra = ` logoutBottom=${lo.getBoundingClientRect().bottom.toFixed(0)} versionBottom=${d.querySelector('.app-version').getBoundingClientRect().bottom.toFixed(0)} tabTop=${tab.getBoundingClientRect().top.toFixed(0)}`;
+    const t = d.querySelector('.toast'); if (t) extra += ` toast="${t.textContent}"`;
+    r.push(`${id}: page ${de.scrollHeight}/${de.clientHeight} over=${over}${extra}`);
+  }
+  document.getElementById('out').textContent = r.join('\n');
+  document.title = 'done';
+}, 3200);
+</script></body></html>

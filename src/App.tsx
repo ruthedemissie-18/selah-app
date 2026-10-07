@@ -40,7 +40,8 @@ function TabBar() {
         <button
           key={t.id}
           className={`tab-btn ${state.tab === t.id ? 'active' : ''}`}
-          onClick={() => update({ tab: t.id })}
+          // Tapping a tab always lands on its main page (e.g. Profile, not a Profile sub-page).
+          onClick={() => update({ tab: t.id, profileView: 'main' })}
         >
           <Icon name={t.icon} />
           <span className="tab-label">{t.label}</span>
@@ -67,13 +68,13 @@ function MainApp() {
   const View = TABS.find((t) => t.id === state.tab)!.view;
   return (
     // Keyed so each tab (and each Bible Study sub-view) opens scrolled to the top.
-    <div className={`app-body ${bodyLayout(state)}`} key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}`}>
+    <div className={`app-body ${bodyLayout(state)}`} key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}:${state.profileView}`}>
       <View />
     </div>
   );
 }
 
-function Phone() {
+export function Phone() {
   const { state } = useStore();
   const [overlayRoot, setOverlayRoot] = useState<HTMLDivElement | null>(null);
   const screenRef = useRef<HTMLDivElement>(null);

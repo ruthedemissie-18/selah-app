@@ -1,4 +1,4 @@
-import { createContext, useContext, type MouseEvent, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 /** The phone frame's overlay layer; sheets and modals portal into it so they cover the whole device. */
@@ -61,6 +61,44 @@ export function CenterModal({
     <Overlay>
       <div className="center-modal-backdrop" onClick={closeOnBackdrop(onClose)}>
         <div className={`center-modal ${className}`}>{children}</div>
+      </div>
+    </Overlay>
+  );
+}
+
+export interface ToastData {
+  /** Changing the id restarts the timer, so a new toast replaces the old one. */
+  id: number;
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+/** A dark message above the tab bar that disappears after 4 seconds, with an optional action like Undo. */
+export function Toast({ toast, onDone }: { toast: ToastData; onDone: () => void }) {
+  const done = useRef(onDone);
+  done.current = onDone;
+
+  useEffect(() => {
+    const timer = setTimeout(() => done.current(), 4000);
+    return () => clearTimeout(timer);
+  }, [toast.id]);
+
+  return (
+    <Overlay>
+      <div className="toast" role="status">
+        <span>{toast.message}</span>
+        {toast.actionLabel && (
+          <button
+            className="toast-action"
+            onClick={() => {
+              toast.onAction?.();
+              done.current();
+            }}
+          >
+            {toast.actionLabel}
+          </button>
+        )}
       </div>
     </Overlay>
   );
