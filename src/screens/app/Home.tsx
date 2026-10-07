@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../../components/Icon';
 import { BottomSheet } from '../../components/Overlays';
-import { LOGO_SRC, SCRIPTURE_OF_DAY, STRUGGLES } from '../../data';
+import { SCRIPTURE_OF_DAY, STRUGGLES } from '../../data';
 import { useStore } from '../../state/AppState';
 import { firstName } from '../../utils';
+import { FISH_PATH, LETTERS_PATH } from '../onboarding/introShapes';
 
 // Two struggles from the onboarding list, changing each day (the same for everyone)
 function struggleOfTheDay() {
@@ -127,7 +128,11 @@ export function Home() {
       <header className="app-topbar">
         <div className="topbar-left">
           <div className="topbar-logo">
-            <img className="topbar-logo-img" alt="Selah logo" src={LOGO_SRC} />
+            {/* same drawn logo as the intro; fish and lettering share one coordinate space */}
+            <svg className="topbar-logo-svg" viewBox="33 72 349 114" role="img" aria-label="Selah logo">
+              <path fillRule="evenodd" fill="#71482C" d={FISH_PATH} />
+              <path fillRule="evenodd" fill="#82846C" d={LETTERS_PATH} />
+            </svg>
           </div>
           <div>
             <div className="welcome-name">Welcome, {firstName(state.name)}</div>

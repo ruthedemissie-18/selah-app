@@ -85,7 +85,7 @@ export const initialState = (): AppState => ({
   interests: [],
   struggles: [],
   customInterest: '',
-  streak: 4,
+  streak: 1,
   wallPrayer: {
     author: 'Anonymous',
     location: 'South Africa',
