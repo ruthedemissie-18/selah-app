@@ -235,7 +235,7 @@ function ProfileMain() {
       <SectionLabel>Support</SectionLabel>
       <MenuCard>
         <MenuRow icon="help" title="Help & Support" onClick={() => update({ profileView: 'help' })} />
-        <MenuRow icon="share" title="Share Selah" subtitle="Invite a friend to your circle" onClick={share} />
+        <MenuRow icon="share" title="Share Selah" subtitle="Invite a friend to the app" onClick={share} />
         <MenuRow icon="info" title="About Selah" onClick={() => update({ profileView: 'about' })} />
       </MenuCard>
 
