@@ -19,7 +19,52 @@
   --on-olive: var(--white); /* text on solid olive / sage buttons */
   --serif: 'Merriweather', serif;
   --sans: 'Inter', sans-serif;
+
+  /* Component colors. Dark mode overrides these at the bottom of the file. */
+  --logo-fish: #71482c;
+  --logo-letters: #82846c;
+  --logo-border: rgba(203, 185, 163, 0.45);
+  --streak-bg: #f4dba6;
+  --streak-text: #b4611c;
+  --success-bg: #dceedf;
+  --success-text: #2f7a45;
+  --warn-bg: rgba(232, 169, 79, 0.28);
+  --warn-text: #8a5a12;
+  --warn-dot: #e8a94f;
+  --status-bg: rgba(140, 143, 115, 0.18);
+  --status-full-bg: rgba(179, 84, 62, 0.14);
+  --wash: rgba(203, 185, 163, 0.25); /* tinted inner boxes */
+  --wash-soft: rgba(203, 185, 163, 0.2);
+  --tab-text: rgba(255, 245, 236, 0.55);
+  --tab-active-bg: rgba(255, 245, 236, 0.14);
+  --scripture-muted: rgba(255, 245, 236, 0.65);
+  --scripture-wash: rgba(255, 245, 236, 0.14);
+  --backdrop: rgba(46, 42, 34, 0.4);
+  --backdrop-strong: rgba(46, 42, 34, 0.45);
+  --switch-knob: #ffffff;
+  --switch-knob-on: #f3ede3;
+  --bible-btn-bg: #677559;
+  --bible-btn-text: #ffffff;
+  --chip-off-opacity: 0.55;
+  --chip-off-ring: transparent;
   color-scheme: light;
+}
+
+/* Tokens built from other tokens are declared on .phone too, so they pick up
+   the dark values (a var() resolved on :root would freeze the light ones). */
+:root,
+.phone {
+  --olive-text: var(--olive); /* olive used as a text or icon color */
+  --frame: var(--ink);
+  --tabbar-bg: var(--olive);
+  --tab-active-text: var(--on-olive);
+  --scripture-bg: var(--olive);
+  --scripture-text: var(--cream);
+  --avatar-bg: var(--taupe);
+  --sheet-bg: var(--cream);
+  --modal-bg: var(--white);
+  --chip-off-bg: var(--sage);
+  --chip-off-text: var(--on-olive);
 }
 
 /* =========================================================
@@ -82,10 +127,11 @@ select {
   height: 826px;
   background: var(--cream);
   border-radius: 44px;
-  border: 10px solid var(--ink);
+  border: 10px solid var(--frame);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
   position: relative;
   overflow: hidden;
+  color: var(--ink); /* inherited text follows the theme */
   display: flex;
   flex-direction: column;
 }
@@ -96,7 +142,7 @@ select {
   transform: translateX(-50%);
   width: 150px;
   height: 26px;
-  background: var(--ink);
+  background: var(--frame);
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
   z-index: 50;
@@ -179,7 +225,7 @@ select {
 .btn-ghost {
   width: 100%;
   background: transparent;
-  color: var(--olive);
+  color: var(--olive-text);
   padding: 14px 18px;
   border-radius: 16px;
   font-size: 14px;
@@ -535,7 +581,7 @@ textarea.field-input {
   height: 44px;
   border-radius: 11px;
   background: var(--cream);
-  border: 1px solid rgba(203, 185, 163, 0.45);
+  border: 1px solid var(--logo-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -548,10 +594,10 @@ textarea.field-input {
   height: auto;
 }
 .logo-fish-path {
-  fill: #71482c;
+  fill: var(--logo-fish);
 }
 .logo-letters-path {
-  fill: #82846c;
+  fill: var(--logo-letters);
 }
 .welcome-name {
   font-size: 16px;
@@ -568,8 +614,8 @@ textarea.field-input {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  background: #f4dba6;
-  color: #b4611c;
+  background: var(--streak-bg);
+  color: var(--streak-text);
   padding: 4px 9px;
   border-radius: 999px;
   font-size: 11px;
@@ -609,7 +655,7 @@ textarea.field-input {
   bottom: 20px;
   left: 20px;
   right: 20px;
-  background: var(--olive);
+  background: var(--tabbar-bg);
   border-radius: 999px;
   display: flex;
   justify-content: space-around;
@@ -623,13 +669,13 @@ textarea.field-input {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  color: rgba(255, 245, 236, 0.55);
+  color: var(--tab-text);
   padding: 6px 10px;
   border-radius: 999px;
 }
 .tab-btn.active {
-  color: var(--on-olive);
-  background: rgba(255, 245, 236, 0.14);
+  color: var(--tab-active-text);
+  background: var(--tab-active-bg);
 }
 .tab-btn svg {
   width: 20px;
@@ -671,7 +717,7 @@ textarea.field-input {
 }
 .scripture-card {
   margin: 14px 20px 4px;
-  background: var(--olive);
+  background: var(--scripture-bg);
   border-radius: 18px;
   padding: 20px 20px 18px;
 }
@@ -679,14 +725,14 @@ textarea.field-input {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgba(255, 245, 236, 0.65);
+  color: var(--scripture-muted);
 }
 .scripture-text {
   font-family: var(--serif);
   font-size: 17px;
   font-style: italic;
   line-height: 1.55;
-  color: var(--cream);
+  color: var(--scripture-text);
   margin-top: 12px;
 }
 .scripture-ref {
@@ -706,8 +752,8 @@ textarea.field-input {
   display: flex;
   align-items: center;
   gap: 7px;
-  background: rgba(255, 245, 236, 0.14);
-  color: var(--cream);
+  background: var(--scripture-wash);
+  color: var(--scripture-text);
   padding: 9px 14px;
   border-radius: 999px;
   font-size: 12.5px;
@@ -737,7 +783,7 @@ textarea.field-input {
   margin: 12px 0 14px;
 }
 .prayer-inner-box {
-  background: rgba(203, 185, 163, 0.25);
+  background: var(--wash);
   border-radius: 14px;
   padding: 15px 16px;
 }
@@ -781,7 +827,7 @@ textarea.field-input {
   border: 1.5px solid var(--taupe);
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--olive);
+  color: var(--olive-text);
 }
 .pray-btn.active {
   background: var(--olive);
@@ -803,7 +849,7 @@ textarea.field-input {
   border-radius: 999px;
   border: 1.5px dashed var(--olive);
   background: transparent;
-  color: var(--olive);
+  color: var(--olive-text);
   font-size: 13.5px;
   font-weight: 700;
 }
@@ -824,8 +870,8 @@ textarea.field-input {
   display: flex;
   align-items: center;
   gap: 5px;
-  background: #dceedf;
-  color: #2f7a45;
+  background: var(--success-bg);
+  color: var(--success-text);
   padding: 6px 11px;
   border-radius: 999px;
   font-size: 11px;
@@ -1011,7 +1057,7 @@ textarea.field-input {
 .bs-icon-badge svg {
   width: 21px;
   height: 21px;
-  color: var(--olive);
+  color: var(--olive-text);
 }
 .bs-header-title {
   font-size: 18px;
@@ -1109,12 +1155,15 @@ textarea.field-input {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  background: var(--sage);
-  color: var(--on-olive);
-  opacity: 0.55;
+  background: var(--chip-off-bg);
+  color: var(--chip-off-text);
+  box-shadow: inset 0 0 0 1.5px var(--chip-off-ring);
+  opacity: var(--chip-off-opacity);
 }
 .filter-chip-solid.on {
   background: var(--olive);
+  color: var(--on-olive);
+  box-shadow: none;
   opacity: 1;
 }
 .results-count {
@@ -1204,7 +1253,7 @@ textarea.field-input {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(140, 143, 115, 0.18);
+  background: var(--status-bg);
   padding: 4px 11px;
   border-radius: 999px;
   font-size: 10.5px;
@@ -1220,18 +1269,18 @@ textarea.field-input {
   flex-shrink: 0;
 }
 .bs-status-pill.full {
-  background: rgba(179, 84, 62, 0.14);
+  background: var(--status-full-bg);
   color: var(--danger);
 }
 .bs-status-pill.full .bs-status-dot {
   background: var(--danger);
 }
 .bs-status-pill.live {
-  background: rgba(232, 169, 79, 0.28);
-  color: #8a5a12;
+  background: var(--warn-bg);
+  color: var(--warn-text);
 }
 .bs-status-pill.live .bs-status-dot {
-  background: #e8a94f;
+  background: var(--warn-dot);
 }
 .bs-progress-track {
   height: 6px;
@@ -1333,7 +1382,7 @@ textarea.field-input {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--taupe);
+  background: var(--avatar-bg);
   color: var(--olive-dark);
   display: flex;
   align-items: center;
@@ -1397,7 +1446,7 @@ textarea.field-input {
   padding: 16px 20px 0;
 }
 .current-chapter-box {
-  background: rgba(203, 185, 163, 0.25);
+  background: var(--wash);
   border-radius: 14px;
   padding: 16px;
   margin-top: 14px;
@@ -1406,7 +1455,7 @@ textarea.field-input {
   font-family: var(--serif);
   font-size: 19px;
   font-weight: 700;
-  color: var(--olive);
+  color: var(--olive-text);
   margin-top: 6px;
 }
 .moderator-card {
@@ -1444,7 +1493,7 @@ textarea.field-input {
   line-height: 1.5;
 }
 .group-details-box {
-  background: rgba(203, 185, 163, 0.2);
+  background: var(--wash-soft);
   border-radius: 14px;
   padding: 16px;
   margin-top: 4px;
@@ -1544,7 +1593,7 @@ textarea.field-input {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--taupe);
+  background: var(--avatar-bg);
   color: var(--olive-dark);
   display: flex;
   align-items: center;
@@ -1552,6 +1601,42 @@ textarea.field-input {
   font-family: var(--serif);
   font-size: 22px;
   font-weight: 700;
+}
+.avatar-button {
+  position: relative;
+  flex-shrink: 0;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.avatar-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--olive);
+  color: var(--on-olive);
+  border: 2px solid var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-badge svg {
+  width: 13px;
+  height: 13px;
+}
+.photo-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+}
+.btn-link.btn-danger {
+  color: var(--danger);
 }
 .profile-name {
   font-family: var(--serif);
@@ -1623,7 +1708,7 @@ textarea.field-input {
 .sheet-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(46, 42, 34, 0.4);
+  background: var(--backdrop);
   z-index: 60;
   display: flex;
   align-items: flex-end;
@@ -1631,7 +1716,7 @@ textarea.field-input {
 .sheet {
   width: 100%;
   max-height: 88%;
-  background: var(--cream);
+  background: var(--sheet-bg);
   border-top-left-radius: 26px;
   border-top-right-radius: 26px;
   display: flex;
@@ -1685,7 +1770,7 @@ textarea.field-input {
 .center-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(46, 42, 34, 0.45);
+  background: var(--backdrop-strong);
   z-index: 75;
   display: flex;
   align-items: center;
@@ -1693,7 +1778,7 @@ textarea.field-input {
   padding: 24px;
 }
 .center-modal {
-  background: var(--white);
+  background: var(--modal-bg);
   border-radius: 22px;
   padding: 26px 22px;
   width: 100%;
@@ -1708,7 +1793,7 @@ textarea.field-input {
   margin-top: 4px;
 }
 .center-modal-sub {
-  color: var(--olive);
+  color: var(--olive-text);
   font-weight: 700;
   font-family: var(--serif);
   font-size: 15px;
@@ -1755,7 +1840,7 @@ textarea.field-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(203, 185, 163, 0.22);
+  background: var(--wash-soft);
   border-radius: 14px;
   padding: 12px 14px;
   margin-top: 14px;
@@ -1848,87 +1933,65 @@ textarea.field-input {
   --walnut: #d2a77f;
   --danger: #d9806a;
   --on-olive: #181412;
+
+  /* sage green is too dark for small text on the elevated surface (4.4:1) */
+  --olive-text: #a8b892;
+  --frame: #2e2a22;
+  --logo-fish: #b98f6b;
+  --logo-letters: #a8b892;
+  --logo-border: #3a302b;
+  --streak-bg: rgba(232, 169, 79, 0.14);
+  --streak-text: #e3b47e;
+  --success-bg: rgba(127, 147, 104, 0.16);
+  --success-text: #a8b892;
+  --warn-bg: rgba(232, 169, 79, 0.14);
+  --warn-text: #e3b47e;
+  --wash: rgba(200, 189, 176, 0.08);
+  --wash-soft: rgba(200, 189, 176, 0.08);
+  --tabbar-bg: #251d1a;
+  --tab-text: rgba(243, 237, 227, 0.55);
+  --tab-active-text: #a8b892;
+  --tab-active-bg: rgba(127, 147, 104, 0.16);
+  --scripture-bg: #302622;
+  --scripture-text: #f3ede3;
+  --scripture-muted: #c8bdb0;
+  --scripture-wash: rgba(243, 237, 227, 0.08);
+  --avatar-bg: #302622;
+  --sheet-bg: #302622;
+  --modal-bg: #302622;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --backdrop-strong: rgba(0, 0, 0, 0.55);
+  --bible-btn-bg: #7f9368;
+  --bible-btn-text: #181412;
+  --chip-off-bg: transparent;
+  --chip-off-text: #c8bdb0;
+  --chip-off-ring: #3a302b;
+  --chip-off-opacity: 1;
+  --placeholder: #a39787;
   color-scheme: dark;
-  border-color: #2e2a22;
-}
-.phone.dark .notch {
-  background: #2e2a22;
 }
 @media (max-width: 520px) {
   body:has(.phone.dark) {
     background: #181412;
   }
 }
+/* Native controls don't inherit text color; zero specificity so component classes still win */
+:where(.phone.dark) :where(button, input, textarea, select) {
+  color: inherit;
+}
+.phone.dark ::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
 
-/* Tab bar: dark mocha, soft green active state */
+/* Dark surfaces get a hairline and deeper shadow instead of a solid fill */
 .phone.dark .tabbar {
-  background: #251d1a;
-  border: 1px solid #3a302b;
+  border: 1px solid var(--line);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
-.phone.dark .tab-btn {
-  color: rgba(243, 237, 227, 0.5);
-}
-.phone.dark .tab-btn.active {
-  color: #a8b892;
-  background: rgba(127, 147, 104, 0.16);
-}
-
-/* Scripture card: raised dark surface instead of solid olive */
 .phone.dark .scripture-card {
-  background: #302622;
-  border: 1px solid #3a302b;
+  border: 1px solid var(--line);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-}
-.phone.dark .scripture-eyebrow {
-  color: #91867a;
-}
-.phone.dark .scripture-text {
-  color: #f3ede3;
-}
-.phone.dark .join-discussion-btn {
-  color: #f3ede3;
-  background: rgba(243, 237, 227, 0.08);
-}
-
-/* Logo: lighter so it reads on dark */
-.phone.dark .logo-fish-path {
-  fill: #b98f6b;
-}
-.phone.dark .logo-letters-path {
-  fill: #a8b892;
-}
-.phone.dark .topbar-logo {
-  border-color: #3a302b;
-}
-
-/* Small badges, toned down */
-.phone.dark .streak-pill {
-  background: rgba(232, 169, 79, 0.14);
-  color: #e3b47e;
-}
-.phone.dark .protected-pill {
-  background: rgba(127, 147, 104, 0.16);
-  color: #a8b892;
-}
-.phone.dark .bs-status-pill.live {
-  background: rgba(232, 169, 79, 0.14);
-  color: #e3b47e;
-}
-.phone.dark .avatar-circle,
-.phone.dark .circle-avatar {
-  background: #302622;
-  color: #a8b892;
-}
-
-/* Sheets and modals sit on the elevated surface */
-.phone.dark .sheet,
-.phone.dark .center-modal {
-  background: #302622;
-}
-.phone.dark .sheet-backdrop,
-.phone.dark .center-modal-backdrop {
-  background: rgba(0, 0, 0, 0.55);
 }
 
 /* Dark mode switch (Profile settings) */
@@ -1949,7 +2012,7 @@ textarea.field-input {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--switch-knob);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.2s ease;
 }
@@ -1958,5 +2021,5 @@ textarea.field-input {
 }
 .switch[aria-checked='true']::after {
   transform: translateX(18px);
-  background: #f3ede3;
+  background: var(--switch-knob-on);
 }

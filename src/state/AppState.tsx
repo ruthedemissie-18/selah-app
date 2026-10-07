@@ -58,6 +58,8 @@ export interface AppState {
 
   // Profile
   editingProfile: boolean;
+  avatar: string | null; // profile photo as a data URL
+  notifications: boolean;
   darkMode: boolean; // remembered on this device
 }
 
@@ -123,6 +125,8 @@ export const initialState = (): AppState => ({
   circleFilters: [],
   createForm: emptyCreateForm(),
   editingProfile: false,
+  avatar: null,
+  notifications: true,
   darkMode: loadDarkMode(),
 });
 

@@ -64,6 +64,12 @@ const PATHS = {
       <path d="m15 9.5 6-3.2v11.4l-6-3.2" {...round} />
     </>
   ),
+  camera: (
+    <>
+      <path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" {...round} />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
   swap: <path d="M7 7h11M7 7l3-3M7 7l3 3M17 17H6M17 17l-3-3M17 17l-3 3" {...round} />,
 } satisfies Record<string, ReactNode>;
 
