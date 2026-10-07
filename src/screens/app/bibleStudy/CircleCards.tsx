@@ -2,6 +2,7 @@ import { Icon } from '../../../components/Icon';
 import type { Circle, CircleId } from '../../../types';
 
 export const MAX_JOINED_CIRCLES = 2;
+export const MAX_CIRCLE_MEMBERS = 15;
 
 function StatusPill({ circle, full }: { circle: Circle; full: boolean }) {
   const [variant, label] = circle.live ? ['live', 'LIVE'] : full ? ['full', 'FULL'] : ['', 'OPEN'];
@@ -10,6 +11,26 @@ function StatusPill({ circle, full }: { circle: Circle; full: boolean }) {
       <span className="bs-status-dot" />
       {label}
     </span>
+  );
+}
+
+/** "Wednesdays, 7:00 PM" → "Wed, 7:00 PM" so leader and time fit on one line. */
+function shortTime(time: string): string {
+  return time.replace(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)[a-z]*,/, '$1,');
+}
+
+function CircleMeta({ circle }: { circle: Circle }) {
+  return (
+    <div className="bs-circle-meta">
+      <span className="bs-meta-item">
+        <Icon name="people" className="meta-icon" />
+        Led by {circle.leader}
+      </span>
+      <span className="bs-meta-item">
+        <Icon name="clock" className="meta-icon" />
+        {shortTime(circle.time)}
+      </span>
+    </div>
   );
 }
 
@@ -66,16 +87,7 @@ export function CircleCard({ circle, joined, onJoin, onLeave }: CircleCardProps)
         <StatusPill circle={circle} full={isFull} />
       </div>
       <div className="bs-circle-title">{circle.name}</div>
-      <div className="bs-circle-meta">
-        <span className="bs-meta-item">
-          <Icon name="people" className="meta-icon" />
-          Led by {circle.leader}
-        </span>
-        <span className="bs-meta-item">
-          <Icon name="clock" className="meta-icon" />
-          {circle.time}
-        </span>
-      </div>
+      <CircleMeta circle={circle} />
       <Capacity circle={circle} />
       {action}
     </div>
@@ -97,19 +109,7 @@ export function JoinedCircleCard({ circle, onOpen, onFindAnother }: JoinedCircle
         <StatusPill circle={circle} full={false} />
       </div>
       <div className="bs-circle-title">{circle.name}</div>
-      <div className="bs-circle-desc">{circle.description}</div>
-      <div className="bs-meta-row">
-        <div className="bs-meta-icon-badge">
-          <Icon name="people" />
-        </div>
-        <span>Led by {circle.leader}</span>
-      </div>
-      <div className="bs-meta-row">
-        <div className="bs-meta-icon-badge">
-          <Icon name="clock" />
-        </div>
-        <span>{circle.time}</span>
-      </div>
+      <CircleMeta circle={circle} />
       <Capacity circle={circle} />
       <button className="btn-primary bs-join-btn" onClick={onOpen}>
         Open Circle

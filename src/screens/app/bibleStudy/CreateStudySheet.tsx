@@ -4,7 +4,7 @@ import { BottomSheet, CloseX } from '../../../components/Overlays';
 import { MEETING_TIMES, NT_BOOKS, OT_BOOKS } from '../../../data';
 import { emptyCreateForm, useStore } from '../../../state/AppState';
 import type { Circle, CreateForm, Privacy } from '../../../types';
-import { MAX_JOINED_CIRCLES } from './CircleCards';
+import { MAX_CIRCLE_MEMBERS, MAX_JOINED_CIRCLES } from './CircleCards';
 
 function SelectField({
   value,
@@ -68,7 +68,7 @@ export function CreateStudySheet({ onClose }: { onClose: () => void }) {
       leader: state.name || 'You',
       time: form.meetingTime || 'Time TBD',
       members: 1,
-      capacity: parseInt(form.capacity, 10) || 12,
+      capacity: Math.min(MAX_CIRCLE_MEMBERS, Math.max(2, parseInt(form.capacity, 10) || 12)),
       testament: OT_BOOKS.includes(form.book) ? 'OT' : 'NT',
       format: 'Online',
       description: form.description || '',
@@ -138,11 +138,12 @@ export function CreateStudySheet({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="form-row">
-          <label className="field-label-caps">Member Capacity</label>
+          <label className="field-label-caps">Member Capacity (max {MAX_CIRCLE_MEMBERS})</label>
           <input
             className="field-input"
             type="number"
             min={2}
+            max={MAX_CIRCLE_MEMBERS}
             value={form.capacity}
             onChange={(e) => setField('capacity', e.target.value)}
           />

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Icon } from '../../../components/Icon';
 import { allCircles, findCircle, useStore } from '../../../state/AppState';
 import type { Circle, CircleId } from '../../../types';
-import { firstName } from '../../../utils';
 import { CircleCard, JoinedCircleCard, MAX_JOINED_CIRCLES } from './CircleCards';
 import { CircleChat } from './CircleChat';
 import { CreateStudySheet } from './CreateStudySheet';
@@ -24,10 +23,7 @@ function getDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: numb
   return R * c;
 }
 
-// CLEANED HEADER: Removed the old purple Read Bible button and YouVersion iframe states
 function HeaderCard({ onPlus }: { onPlus?: () => void }) {
-  const { state } = useStore();
-
   return (
     <div className="bs-header-card">
       <div className="bs-header-left">
@@ -36,18 +32,20 @@ function HeaderCard({ onPlus }: { onPlus?: () => void }) {
         </div>
         <div>
           <div className="bs-header-title">Bible Study</div>
-          <div className="bs-header-sub">Find your circle. Grow in the Word.</div>
+          <div className="bs-header-sub">
+            <span>Find your circle.</span>
+            <span>Grow in the Word.</span>
+          </div>
         </div>
       </div>
 
-      <div className="bs-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div className="bs-greeting">Hi, {firstName(state.name)}</div>
-        {onPlus && (
+      {onPlus && (
+        <div className="bs-header-right">
           <button className="plus-round-btn" onClick={onPlus} aria-label="Browse circles">
             +
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -72,7 +70,12 @@ function StudyHome({ onJoin, onLeave }: CardActions) {
 
       {joinedList.length > 0 && (
         <div className="bs-section your-circles">
-          <div className="eyebrow">Your Circles</div>
+          <div className="bs-section-top">
+            <span className="eyebrow">Your Circles</span>
+            <span className="groups-max-inline">
+              {joinedList.length}/{MAX_JOINED_CIRCLES} joined
+            </span>
+          </div>
           {joinedList.map((c) => (
             <JoinedCircleCard
               key={c.id}
@@ -84,21 +87,24 @@ function StudyHome({ onJoin, onLeave }: CardActions) {
         </div>
       )}
 
-      <div className={`bs-section ${joinedList.length ? 'after-joined' : 'first'}`}>
-        <div className="bs-section-top">
-          <span className="eyebrow">Matched to your book</span>
-          <span className="groups-max-inline">2 groups max</span>
-        </div>
-        <h2 className="bs-heading">Spaces studying {topic}</h2>
-        <div className="bs-subtext">Pick a circle to start growing together.</div>
-        {recommended.length ? (
-          recommended.map((c) => <CircleCard key={c.id} circle={c} joined={joined} onJoin={onJoin} onLeave={onLeave} />)
-        ) : (
-          <div className="empty-box">
-            We don't have a {topic} circle open right now, but new groups are starting soon. Explore others via search!
+      {/* Recommendations are for getting started; once you're in a circle, find more via + or "Find another group". */}
+      {joinedList.length === 0 && (
+        <div className="bs-section first">
+          <div className="bs-section-top">
+            <span className="eyebrow">Matched to your book</span>
+            <span className="groups-max-inline">2 groups max</span>
           </div>
-        )}
-      </div>
+          <h2 className="bs-heading">Spaces studying {topic}</h2>
+          <div className="bs-subtext">Pick a circle to start growing together.</div>
+          {recommended.length ? (
+            recommended.map((c) => <CircleCard key={c.id} circle={c} joined={joined} onJoin={onJoin} onLeave={onLeave} />)
+          ) : (
+            <div className="empty-box">
+              We don't have a {topic} circle open right now, but new groups are starting soon. Explore others via search!
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
@@ -206,7 +212,11 @@ function StudyBrowse({ onJoin, onLeave }: CardActions) {
       </div>
 
       {results.length ? (
-        results.map((c) => <CircleCard key={c.id} circle={c} joined={joinedCircles} onJoin={onJoin} onLeave={onLeave} />)
+        <div className="bs-list">
+          {results.map((c) => (
+            <CircleCard key={c.id} circle={c} joined={joinedCircles} onJoin={onJoin} onLeave={onLeave} />
+          ))}
+        </div>
       ) : (
         <div className="empty-note">No circles match your search.</div>
       )}

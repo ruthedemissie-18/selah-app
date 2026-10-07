@@ -61,7 +61,7 @@ function MainApp() {
   );
 }
 
-function Phone() {
+export function Phone() {
   const { state } = useStore();
   const [overlayRoot, setOverlayRoot] = useState<HTMLDivElement | null>(null);
   const screenRef = useRef<HTMLDivElement>(null);
