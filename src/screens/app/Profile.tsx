@@ -137,14 +137,6 @@ export function Profile() {
         ))}
       </div>
 
-      <div className="card">
-        <div className="card-title">About Selah</div>
-        <p className="about-text">
-          Selah is a space to find your community and build your own — through shared prayer, honest struggle, and
-          Scripture read together.
-        </p>
-      </div>
-
       <div className="pad flush-top">
         <button className="btn-ghost btn-danger" onClick={reset}>
           Log Out

@@ -1696,11 +1696,6 @@ textarea.field-input {
 .settings-value {
   color: var(--ink-soft);
 }
-.about-text {
-  font-size: 13px;
-  color: var(--ink-soft);
-  line-height: 1.5;
-}
 
 /* =========================================================
    Overlays: bottom sheets & centered modals
