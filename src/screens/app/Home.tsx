@@ -40,21 +40,22 @@ export function Home() {
       const fetchIndependentCuratedVerse = async () => {
         try {
           // Step 1: Pull the complete 365-day hand-picked verse reference database map from YouVersion
-          const calendarResponse = await fetch('https://youversion.com', {
-            headers: { 'X-YVP-App-Key': 'YOUR_FREE_YOUVERSION_DEVELOPER_KEY' }
+          const calendarResponse = await fetch('https://api.youversion.com/v1/verse_of_the_days', {
+            headers: { 'X-YVP-App-Key': import.meta.env.VITE_YOUVERSION_API_KEY }
           });
           const calendarData = await calendarResponse.json();
 
-          if (calendarData && Array.isArray(calendarData)) {
+          // The API wraps the list: { data: [{ day, passage_id }, ...] }
+          if (calendarData && Array.isArray(calendarData.data)) {
             // Step 2: Grab day number of the year (1-365) and shift it by a fixed offset (+120 days)
             // This ensures we choose a totally different, non-matching curated verse from their index map
             const currentDayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-            const shiftedIndex = (currentDayOfYear + 120) % calendarData.length;
-            const independentPassageId = calendarData[shiftedIndex].passage_id; // e.g. "PHP.4.6"
+            const shiftedIndex = (currentDayOfYear + 120) % calendarData.data.length;
+            const independentPassageId = calendarData.data[shiftedIndex].passage_id; // e.g. "PHP.4.6"
 
             // Step 3: Fetch the clean textual layout block of that chosen curated scripture reference
-            const textResponse = await fetch(`https://youversion.com{independentPassageId}?format=text`, {
-              headers: { 'X-YVP-App-Key': 'YOUR_FREE_YOUVERSION_DEVELOPER_KEY' }
+            const textResponse = await fetch(`https://api.youversion.com/v1/bibles/3034/passages/${independentPassageId}?format=text`, {
+              headers: { 'X-YVP-App-Key': import.meta.env.VITE_YOUVERSION_API_KEY }
             });
             const textData = await textResponse.json();
 
