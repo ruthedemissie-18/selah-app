@@ -1,51 +1,58 @@
-import { useStore, type AppState } from '../../state/AppState';
+import { useState } from 'react';
+import { LocationFields } from '../../components/LocationFields';
+import { isLocationEmpty, saveLocation, validateLocation, type LocationFields as Fields } from '../../services/profile';
+import { useStore } from '../../state/AppState';
 import { OnboardingLayout, StepHeading } from './OnboardingLayout';
 
-type LocationKey = 'locCity' | 'locState' | 'locCountry';
-
-const FIELDS: { key: LocationKey; label: string; placeholder: string }[] = [
-  { key: 'locCity', label: 'City', placeholder: 'La Mirada' },
-  { key: 'locState', label: 'State (optional)', placeholder: 'California' },
-  { key: 'locCountry', label: 'Country', placeholder: 'United States' },
-];
+const STATE_KEYS = { city: 'locCity', state: 'locState', country: 'locCountry' } as const;
 
 export function Location() {
   const { state, update } = useStore();
-  const next = () => update({ screen: 'book' });
+  const [saving, setSaving] = useState(false);
+  const fields: Fields = { city: state.locCity, state: state.locState, country: state.locCountry };
+  // The step can be skipped by leaving everything blank; once anything is typed, City + Country are required.
+  const valid = Object.keys(validateLocation(fields)).length === 0;
 
-  const setField = (key: LocationKey, value: string) =>
-    update((s: AppState) => {
-      const merged = { ...s, [key]: value };
-      const location = [merged.locCity, merged.locState, merged.locCountry].filter(Boolean).join(', ');
-      return { [key]: value, location };
-    });
+  const skip = () => update({ locCity: '', locState: '', locCountry: '', location: '', screen: 'book' });
+
+  const next = async () => {
+    if (!valid || saving) return;
+    if (isLocationEmpty(fields)) return skip();
+    setSaving(true);
+    try {
+      const saved = await saveLocation(fields);
+      update({
+        locCity: saved.city,
+        locState: saved.state,
+        locCountry: saved.country,
+        location: saved.display,
+        screen: 'book',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <OnboardingLayout
       step="location"
       centered
       footer={
-        <button className="btn-primary" onClick={next}>
+        <button className="btn-primary" onClick={next} disabled={!valid || saving}>
           Continue
         </button>
       }
     >
       <StepHeading title="Where are you joining us from?" note="This helps us connect you with local Bible studies." />
 
-      {FIELDS.map(({ key, label, placeholder }, i) => (
-        <div key={key}>
-          <label className="field-label-caps">{label}</label>
-          <input
-            className={`field-input ${i < FIELDS.length - 1 ? 'gap-lg' : ''}`}
-            placeholder={placeholder}
-            value={state[key]}
-            onChange={(e) => setField(key, e.target.value)}
-          />
-        </div>
-      ))}
+      <LocationFields
+        value={fields}
+        labelClassName="field-label-caps"
+        onChange={(key, value) => update({ [STATE_KEYS[key]]: value })}
+      />
 
       <div className="skip-row">
-        <button className="subtle-skip" onClick={next}>
+        <button className="subtle-skip" onClick={skip}>
           Skip — add this later in your profile
         </button>
       </div>

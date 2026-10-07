@@ -1,5 +1,14 @@
-import { useRef, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Icon } from '../../components/Icon';
+import { LocationFields } from '../../components/LocationFields';
+import {
+  checkPhotoFile,
+  resizePhoto,
+  saveAvatar,
+  saveLocation,
+  validateLocation,
+  type LocationFields as Fields,
+} from '../../services/profile';
 import { useStore } from '../../state/AppState';
 import { initials } from '../../utils';
 
@@ -15,21 +24,134 @@ const SETTINGS = [
   { label: 'Account', value: 'Manage' },
 ];
 
+/** Avatar with a camera badge. With no photo a tap opens the file picker; with one it opens a small menu. */
+function AvatarPicker() {
+  const { state, update } = useStore();
+  const input = useRef<HTMLInputElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
+  const openPicker = () => {
+    setMenuOpen(false);
+    input.current?.click();
+  };
+
+  const pickPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow choosing the same file again
+    if (!file) return;
+    const problem = checkPhotoFile(file);
+    if (problem) return setError(problem);
+    try {
+      update({ avatar: await saveAvatar(await resizePhoto(file)) });
+      setError(null);
+    } catch {
+      setError("Couldn't read that image");
+    }
+  };
+
+  const removePhoto = async () => {
+    setMenuOpen(false);
+    setError(null);
+    update({ avatar: await saveAvatar(null) });
+  };
+
+  return (
+    <div className="avatar-wrap" ref={wrap}>
+      <button
+        className="avatar-circle avatar-button"
+        onClick={() => (state.avatar ? setMenuOpen((o) => !o) : openPicker())}
+        aria-label={state.avatar ? 'Profile photo options' : 'Add profile photo'}
+        aria-haspopup={state.avatar ? 'menu' : undefined}
+        aria-expanded={state.avatar ? menuOpen : undefined}
+      >
+        {state.avatar ? <img src={state.avatar} alt="" className="avatar-img" /> : initials(state.name)}
+        <span className="avatar-badge">
+          <Icon name="camera" />
+        </span>
+      </button>
+      <input ref={input} type="file" accept="image/*" hidden onChange={pickPhoto} />
+      {menuOpen && (
+        <div className="avatar-menu" role="menu">
+          <button role="menuitem" onClick={openPicker}>
+            Choose new photo
+          </button>
+          <button role="menuitem" className="danger" onClick={removePhoto}>
+            Remove photo
+          </button>
+        </div>
+      )}
+      {error && (
+        <p className="field-error avatar-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function EditProfileForm({ onDone }: { onDone: () => void }) {
+  const { state, update } = useStore();
+  const [name, setName] = useState(state.name);
+  const [loc, setLoc] = useState<Fields>({ city: state.locCity, state: state.locState, country: state.locCountry });
+  const [saving, setSaving] = useState(false);
+  const valid = Object.keys(validateLocation(loc)).length === 0;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!valid || saving) return;
+    setSaving(true);
+    try {
+      const saved = await saveLocation(loc);
+      update({
+        name: name.trim(),
+        locCity: saved.city,
+        locState: saved.state,
+        locCountry: saved.country,
+        location: saved.display,
+      });
+      onDone();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form className="card flush-top" onSubmit={submit} noValidate>
+      <label className="field-label" htmlFor="profile-name">
+        Name
+      </label>
+      <input id="profile-name" className="field-input gap-md" value={name} onChange={(e) => setName(e.target.value)} />
+      <LocationFields
+        value={loc}
+        onChange={(key, value) => setLoc((l) => ({ ...l, [key]: value }))}
+      />
+      <button type="submit" className="btn-primary edit-save" disabled={!valid || saving}>
+        Save
+      </button>
+    </form>
+  );
+}
+
 export function Profile() {
   const { state, update, reset } = useStore();
   const current = state.prayers.filter((p) => p.status === 'current');
   const answered = state.prayers.filter((p) => p.status === 'answered');
-
-  const photoInput = useRef<HTMLInputElement>(null);
-
-  const pickPhoto = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow choosing the same file again
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => update({ avatar: reader.result as string });
-    reader.readAsDataURL(file);
-  };
 
   const toggle = (key: SwitchKey) => update((s) => ({ [key]: !s[key] }));
 
@@ -43,17 +165,7 @@ export function Profile() {
       </header>
 
       <div className="pad profile-identity">
-        <button
-          className="avatar-circle avatar-button"
-          onClick={() => photoInput.current?.click()}
-          aria-label={state.avatar ? 'Change profile photo' : 'Add profile photo'}
-        >
-          {state.avatar ? <img src={state.avatar} alt="" className="avatar-img" /> : initials(state.name)}
-          <span className="avatar-badge">
-            <Icon name="camera" />
-          </span>
-        </button>
-        <input ref={photoInput} type="file" accept="image/*" hidden onChange={pickPhoto} />
+        <AvatarPicker />
         <div>
           <div className="profile-name">{state.name || 'Friend'}</div>
           <div className="profile-location">{state.location || 'Location not set'}</div>
@@ -66,33 +178,7 @@ export function Profile() {
         </button>
       </div>
 
-      {state.editingProfile && (
-        <div className="card flush-top">
-          <label className="field-label">Name</label>
-          <input
-            className="field-input gap-sm"
-            value={state.name}
-            onChange={(e) => update({ name: e.target.value })}
-          />
-          <label className="field-label">Location</label>
-          <input
-            className="field-input"
-            value={state.location}
-            onChange={(e) => update({ location: e.target.value })}
-          />
-          <label className="field-label">Profile Photo</label>
-          <div className="photo-actions">
-            <button className="btn-link" onClick={() => photoInput.current?.click()}>
-              {state.avatar ? 'Change photo' : 'Upload photo'}
-            </button>
-            {state.avatar && (
-              <button className="btn-link btn-danger" onClick={() => update({ avatar: null })}>
-                Remove photo
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      {state.editingProfile && <EditProfileForm onDone={() => update({ editingProfile: false })} />}
 
       <div className="card">
         <div className="card-title">Prayers</div>
