@@ -1,9 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../../components/Icon';
 import { BottomSheet } from '../../components/Overlays';
-import { LOGO_SRC, SCRIPTURE_OF_DAY } from '../../data';
+import { LOGO_SRC, SCRIPTURE_OF_DAY, STRUGGLES } from '../../data';
 import { useStore } from '../../state/AppState';
 import { firstName } from '../../utils';
+
+// Two struggles from the onboarding list, changing each day (the same for everyone)
+function struggleOfTheDay() {
+  const list = STRUGGLES.filter((s) => s !== 'Other');
+  const now = new Date();
+  const day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000); // changes at local midnight
+  const first = list[day % list.length];
+  const second = list[(day + 3) % list.length];
+  return [first.toLowerCase(), second.toLowerCase()];
+}
 
 function PrayerRequestSheet({ onClose }: { onClose: () => void }) {
   const { state, update } = useStore();
@@ -49,7 +59,7 @@ export function Home() {
   const { state, update } = useStore();
   const [sheetOpen, setSheetOpen] = useState(false);
   const { wallPrayer: wall, streak } = state;
-  const struggle = state.struggles || 'Anxiety & Worry';
+  const [struggleA, struggleB] = struggleOfTheDay();
 
   // --- 🪐 CURATED & DATE-SHIFTED YOUVERSION API HOOK ---
   const [liveVerseText, setLiveVerseText] = useState(() => {
@@ -133,8 +143,8 @@ export function Home() {
       <div className="insight-box">
         <Icon name="people" />
         <span>
-          Did you know? <strong>64% of believers</strong> in our fellowship are navigating <u>{struggle}</u> alongside
-          you today. You are not alone!
+          Believers in our fellowship are walking through <u>{struggleA}</u> and <u>{struggleB}</u> today. Remember
+          to pray for your brothers and sisters.
         </span>
       </div>
 
