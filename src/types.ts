@@ -33,6 +33,10 @@ export interface CircleMessage {
   id: string;
   author: string;
   text: string;
+  /** Epoch ms. Seed messages have none and are treated as earlier today. */
+  sentAt?: number;
+  /** Sent by the current user. */
+  mine?: boolean;
 }
 
 export interface Prayer {

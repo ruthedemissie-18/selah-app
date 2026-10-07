@@ -66,6 +66,8 @@
   --modal-bg: var(--white);
   --chip-off-bg: var(--sage);
   --chip-off-text: var(--on-olive);
+  --bubble-in-bg: var(--white);
+  --chat-day-bg: var(--wash);
 }
 
 /* =========================================================
@@ -1302,118 +1304,185 @@ textarea.field-input {
   text-underline-offset: 2px;
 }
 
-/* Circle chat */
+/* Circle chat: header, a list that scrolls on its own, input pinned to the bottom (tab bar hidden) */
+.app-body.chat-mode {
+  padding-bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.chat-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .circle-chat-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 38px 20px 16px;
+  padding: 38px 16px 12px;
   border-bottom: 1px solid var(--line);
   background: var(--white);
+  flex-shrink: 0;
 }
 .circle-back-btn,
 .circle-info-btn {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--cream);
+  color: var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.circle-back-btn {
-  width: 38px;
-  height: 38px;
-  color: var(--ink);
-}
-.circle-info-btn {
-  width: 34px;
-  height: 34px;
-  color: var(--ink-soft);
-}
 .circle-back-btn svg,
 .circle-info-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
 }
 .circle-chat-title-wrap {
   flex: 1;
+  min-width: 0;
 }
 .circle-chat-title {
   font-family: var(--serif);
   font-weight: 700;
   font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .circle-chat-sub {
-  display: flex;
-  align-items: center;
-  gap: 5px;
   font-size: 12px;
   color: var(--ink-soft);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .circle-chat-sub strong {
-  color: var(--ink);
+  color: var(--olive-text);
 }
-.circle-feed {
-  padding-bottom: 8px;
-}
-.circle-msg-row {
+.chat-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 0 20px;
-  margin-top: 14px;
+  flex-direction: column;
+  padding: 12px 14px 10px;
+  scrollbar-width: none;
 }
-.circle-avatar {
-  width: 34px;
-  height: 34px;
+.chat-list::-webkit-scrollbar {
+  display: none;
+}
+.chat-list-inner {
+  margin-top: auto;
+}
+.chat-day {
+  text-align: center;
+  margin: 10px 0 12px;
+}
+.chat-day span {
+  display: inline-block;
+  background: var(--chat-day-bg);
+  color: var(--ink-soft);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.chat-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+.chat-row.first {
+  margin-top: 8px;
+}
+.chat-row.mine {
+  justify-content: flex-end;
+}
+.chat-avatar,
+.chat-avatar-spacer {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+.chat-avatar {
   border-radius: 50%;
   background: var(--avatar-bg);
-  color: var(--olive-dark);
+  color: var(--olive-text);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.chat-bubble {
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+/* Corners on the sender's side tighten so a group of bubbles reads as one block */
+.chat-row.theirs .chat-bubble {
+  background: var(--bubble-in-bg);
+  color: var(--ink);
+  max-width: 84%;
+  border-bottom-left-radius: 6px;
+}
+.chat-row.theirs:not(.first) .chat-bubble {
+  border-top-left-radius: 6px;
+}
+.chat-row.mine .chat-bubble {
+  background: var(--olive);
+  color: var(--on-olive);
+  max-width: 80%;
+  border-bottom-right-radius: 6px;
+}
+.chat-row.mine:not(.first) .chat-bubble {
+  border-top-right-radius: 6px;
+}
+.chat-author {
   font-size: 11.5px;
   font-weight: 700;
+  color: var(--olive-text);
+  margin-bottom: 2px;
+}
+.chat-time {
+  text-align: right;
+  font-size: 10px;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px calc(22px + env(safe-area-inset-bottom, 0px));
+  background: var(--white);
+  border-top: 1px solid var(--line);
   flex-shrink: 0;
 }
-.circle-bubble {
-  background: var(--white);
-  border-radius: 14px;
-  padding: 10px 14px;
-  max-width: 78%;
-  box-shadow: 0 1px 4px rgba(46, 42, 34, 0.05);
-}
-.circle-bubble-author {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--olive-dark);
-  margin-bottom: 3px;
-}
-.circle-bubble-text {
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--ink);
-}
-.circle-input-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 20px 4px;
-}
-.circle-input {
+.chat-input {
   flex: 1;
   min-width: 0;
-  padding: 12px 16px;
+  height: 42px;
+  padding: 0 16px;
   border-radius: 999px;
-  border: 1.5px solid var(--line);
-  background: var(--white);
-  font-size: 13px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  font-size: 14px;
   color: var(--ink);
+  outline: none;
 }
-.circle-send-btn {
-  width: 44px;
-  height: 44px;
+.chat-input:focus {
+  border-color: var(--sage);
+}
+.chat-send-btn {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--olive);
   color: var(--on-olive);
@@ -1421,10 +1490,21 @@ textarea.field-input {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: opacity 0.15s ease;
 }
-.circle-send-btn svg {
-  width: 16px;
-  height: 16px;
+.chat-send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.chat-send-btn svg {
+  width: 18px;
+  height: 18px;
+}
+@media (max-width: 520px) {
+  /* No notch to clear on a real phone */
+  .circle-chat-header {
+    padding-top: 12px;
+  }
 }
 
 /* Circle info sheet */
@@ -1984,6 +2064,8 @@ textarea.field-input {
   --chip-off-opacity: 1;
   --placeholder: #a39787;
   --menu-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  --bubble-in-bg: #302622; /* raised surface, so bubbles stand off the background */
+  --chat-day-bg: rgba(243, 237, 227, 0.08);
   color-scheme: dark;
 }
 @media (max-width: 520px) {

@@ -12,7 +12,7 @@ import { Location } from './screens/onboarding/Location';
 import { Splash } from './screens/onboarding/Splash';
 import { Struggles } from './screens/onboarding/Struggles';
 import { Transition } from './screens/onboarding/Transition';
-import { AppStateProvider, useStore } from './state/AppState';
+import { AppStateProvider, findCircle, useStore, type AppState } from './state/AppState';
 import type { Screen, Tab } from './types';
 
 const TABS: { id: Tab; label: string; icon: IconName; view: ComponentType }[] = [
@@ -50,18 +50,23 @@ function TabBar() {
   );
 }
 
+/** An open circle chat takes the whole screen: no tab bar, and its message list does its own scrolling. */
+function inCircleChat(state: AppState): boolean {
+  return state.tab === 'biblestudy' && !!findCircle(state, state.activeCircleId);
+}
+
 function MainApp() {
   const { state } = useStore();
   const View = TABS.find((t) => t.id === state.tab)!.view;
   return (
     // Keyed so each tab (and each Bible Study sub-view) opens scrolled to the top.
-    <div className="app-body" key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}`}>
+    <div className={`app-body ${inCircleChat(state) ? 'chat-mode' : ''}`} key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}`}>
       <View />
     </div>
   );
 }
 
-export function Phone() {
+function Phone() {
   const { state } = useStore();
   const [overlayRoot, setOverlayRoot] = useState<HTMLDivElement | null>(null);
   const screenRef = useRef<HTMLDivElement>(null);
@@ -80,7 +85,7 @@ export function Phone() {
         <div className="screen" ref={screenRef}>
           <ScreenView />
         </div>
-        {inApp && <TabBar />}
+        {inApp && !inCircleChat(state) && <TabBar />}
         <div ref={setOverlayRoot} />
       </div>
     </OverlayRootContext.Provider>

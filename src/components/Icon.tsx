@@ -51,6 +51,7 @@ const PATHS = {
     </>
   ),
   send: <path d="M4 12 20 4l-6 16-3-7-7-1Z" {...round} />,
+  arrowup: <path d="M12 19V5M6 11l6-6 6 6" {...round} />,
   arrowleft: <path d="M19 12H5M11 6l-6 6 6 6" {...round} />,
   clock: (
     <>

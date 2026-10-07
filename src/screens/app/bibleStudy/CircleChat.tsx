@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { Icon } from '../../../components/Icon';
 import { BottomSheet } from '../../../components/Overlays';
 import { CIRCLE_SEED } from '../../../data';
 import { useStore, type AppState } from '../../../state/AppState';
 import type { Circle, CircleId, CircleMessage } from '../../../types';
-import { initials } from '../../../utils';
+import { clockTime, initials } from '../../../utils';
 
 function messagesFor(s: AppState, id: CircleId): CircleMessage[] {
   return (
@@ -13,6 +13,33 @@ function messagesFor(s: AppState, id: CircleId): CircleMessage[] {
       { id: `gen-${id}`, author: 'Selah Team', text: 'Welcome to the circle! Introduce yourself and share what brought you here.' },
     ]
   );
+}
+
+/** Consecutive messages from one sender this close together share a bubble group. */
+const GROUP_GAP_MS = 5 * 60 * 1000;
+
+function dayKey(m: CircleMessage): string {
+  return new Date(m.sentAt ?? Date.now()).toDateString();
+}
+
+function dayLabel(m: CircleMessage): string {
+  const day = new Date(m.sentAt ?? Date.now());
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (day.toDateString() === today.toDateString()) return 'Today';
+  if (day.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return day.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function sameGroup(a: CircleMessage, b: CircleMessage): boolean {
+  if (a.author !== b.author || !!a.mine !== !!b.mine || dayKey(a) !== dayKey(b)) return false;
+  // Seed messages have no time, so they group by sender alone.
+  return a.sentAt == null || b.sentAt == null || b.sentAt - a.sentAt <= GROUP_GAP_MS;
+}
+
+function titleCase(text: string): string {
+  return text.toLowerCase().replace(/(^|\s)\p{L}/gu, (c) => c.toUpperCase());
 }
 
 type InfoTab = 'overview' | 'resources';
@@ -130,22 +157,54 @@ function CircleInfoSheet({ circle, onClose }: { circle: Circle; onClose: () => v
 export function CircleChat({ circle }: { circle: Circle }) {
   const { state, update } = useStore();
   const [infoOpen, setInfoOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const atBottom = useRef(true);
   const messages = messagesFor(state, circle.id);
+  const draft = state.circleChatDraft.trim();
 
-  const send = () => {
-    const text = state.circleChatDraft.trim();
-    if (!text) return;
+  const scrollToBottom = () => {
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  };
+
+  // Newest messages are at the bottom: start there, and follow new ones as they arrive.
+  useLayoutEffect(() => {
+    scrollToBottom();
+    atBottom.current = true;
+  }, [messages.length]);
+
+  // Content can grow after layout (web fonts, emoji); stay pinned unless the user scrolled up to read.
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    const observer = new ResizeObserver(() => atBottom.current && scrollToBottom());
+    observer.observe(inner);
+    return () => observer.disconnect();
+  }, []);
+
+  const onScroll = () => {
+    const list = listRef.current;
+    if (list) atBottom.current = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+  };
+
+  const send = (e: FormEvent) => {
+    e.preventDefault();
+    if (!draft) return;
     update((s) => ({
       circleMessages: {
         ...s.circleMessages,
-        [circle.id]: [...messagesFor(s, circle.id), { id: `u${Date.now()}`, author: s.name || 'You', text }],
+        [circle.id]: [
+          ...messagesFor(s, circle.id),
+          { id: `u${Date.now()}`, author: s.name || 'You', text: draft, sentAt: Date.now(), mine: true },
+        ],
       },
       circleChatDraft: '',
     }));
   };
 
   return (
-    <>
+    <div className="chat-screen">
       <header className="circle-chat-header">
         <button className="circle-back-btn" onClick={() => update({ activeCircleId: null })} aria-label="Back">
           <Icon name="arrowleft" />
@@ -153,7 +212,7 @@ export function CircleChat({ circle }: { circle: Circle }) {
         <div className="circle-chat-title-wrap">
           <div className="circle-chat-title">{circle.name}</div>
           <div className="circle-chat-sub">
-            <Icon name="book" className="meta-icon" /> {circle.category} · <strong>{circle.live ? 'LIVE' : 'OPEN'}</strong>
+            {titleCase(circle.category)} · <strong>{circle.members} members</strong>
           </div>
         </div>
         <button className="circle-info-btn" onClick={() => setInfoOpen(true)} aria-label="Circle info">
@@ -161,32 +220,60 @@ export function CircleChat({ circle }: { circle: Circle }) {
         </button>
       </header>
 
-      <div className="circle-feed">
-        {messages.map((m) => (
-          <div key={m.id} className="circle-msg-row">
-            <div className="circle-avatar">{initials(m.author)}</div>
-            <div className="circle-bubble">
-              <div className="circle-bubble-author">{m.author}</div>
-              <div className="circle-bubble-text">{m.text}</div>
-            </div>
-          </div>
-        ))}
+      <div className="chat-list" ref={listRef} onScroll={onScroll} role="log" aria-live="polite">
+        {/* margin-top: auto keeps a short conversation at the bottom, next to the input */}
+        <div className="chat-list-inner" ref={innerRef}>
+          {messages.map((m, i) => {
+            const prev = messages[i - 1];
+            const next = messages[i + 1];
+            const newDay = !prev || dayKey(prev) !== dayKey(m);
+            const first = newDay || !sameGroup(prev, m);
+            const last = !next || dayKey(next) !== dayKey(m) || !sameGroup(m, next);
+            const side = m.mine ? 'mine' : 'theirs';
+            return (
+              <div key={m.id}>
+                {newDay && (
+                  <div className="chat-day">
+                    <span>{dayLabel(m)}</span>
+                  </div>
+                )}
+                <div className={`chat-row ${side} ${first ? 'first' : ''} ${last ? 'last' : ''}`}>
+                  {!m.mine &&
+                    (last ? (
+                      <div className="chat-avatar" aria-hidden="true">
+                        {initials(m.author)}
+                      </div>
+                    ) : (
+                      <div className="chat-avatar-spacer" />
+                    ))}
+                  <div className="chat-bubble">
+                    {!m.mine && first && <div className="chat-author">{m.author}</div>}
+                    <div className="chat-text">{m.text}</div>
+                  </div>
+                </div>
+                {m.mine && last && m.sentAt != null && (
+                  <div className="chat-time">{clockTime(new Date(m.sentAt))}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="circle-input-row">
+      <form className="chat-input-bar" onSubmit={send}>
         <input
-          className="circle-input"
-          placeholder="Share a thought…"
+          className="chat-input"
+          placeholder="Message"
+          aria-label="Message"
           value={state.circleChatDraft}
           onChange={(e) => update({ circleChatDraft: e.target.value })}
         />
-        <button className="circle-send-btn" onClick={send} aria-label="Send">
-          <Icon name="send" />
+        <button type="submit" className="chat-send-btn" disabled={!draft} aria-label="Send">
+          <Icon name="arrowup" />
         </button>
-      </div>
-      <div className="feed-spacer" />
+      </form>
 
       {infoOpen && <CircleInfoSheet circle={circle} onClose={() => setInfoOpen(false)} />}
-    </>
+    </div>
   );
 }
