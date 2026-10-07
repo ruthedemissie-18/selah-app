@@ -19,6 +19,11 @@ export interface Circle {
   moderatorBio?: string;
   length?: string;
   live?: boolean;
+  /** Interest topics (from INTERESTS) this circle fits, used to recommend it. */
+  topics?: string[];
+  /** Where a Local circle meets. */
+  city?: string;
+  country?: string;
 }
 
 export interface DiscussionMessage {

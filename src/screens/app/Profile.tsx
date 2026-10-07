@@ -11,7 +11,11 @@ import {
   validateLocation,
   type LocationFields as Fields,
 } from '../../services/profile';
-import { useStore } from '../../state/AppState';
+import { BookPicker } from '../../components/BookPicker';
+import { InterestPicker } from '../../components/InterestPicker';
+import { bookLabel } from '../../recommend';
+import { firstChannel, useStore } from '../../state/AppState';
+import { validateBook, validateInterests, validateName } from '../../validation';
 import { initials } from '../../utils';
 import { AboutPage, APP_VERSION, HelpPage } from './InfoPages';
 import { Prayers } from './Prayers';
@@ -100,12 +104,20 @@ function AvatarPicker() {
   );
 }
 
+/** Edit Profile: same rules as sign-up and onboarding. Saving re-orders circles and channels right away. */
 function EditProfileForm({ onDone }: { onDone: () => void }) {
   const { state, update } = useStore();
   const [name, setName] = useState(state.name);
+  const [nameTouched, setNameTouched] = useState(false);
   const [loc, setLoc] = useState<Fields>({ city: state.locCity, state: state.locState, country: state.locCountry });
+  const [book, setBook] = useState(state.book);
+  const [interests, setInterests] = useState(state.interests);
   const [saving, setSaving] = useState(false);
-  const valid = Object.keys(validateLocation(loc)).length === 0;
+
+  const nameError = validateName(name);
+  const interestsError = validateInterests(interests);
+  const valid =
+    !nameError && Object.keys(validateLocation(loc)).length === 0 && !validateBook(book) && !interestsError;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -113,13 +125,17 @@ function EditProfileForm({ onDone }: { onDone: () => void }) {
     setSaving(true);
     try {
       const saved = await saveLocation(loc);
-      update({
+      update((s) => ({
         name: name.trim(),
         locCity: saved.city,
         locState: saved.state,
         locCountry: saved.country,
         location: saved.display,
-      });
+        book,
+        interests,
+        // new interests mean a new first channel in Discussions
+        selectedDiscussion: interests.join() === s.interests.join() ? s.selectedDiscussion : firstChannel(interests),
+      }));
       onDone();
     } finally {
       setSaving(false);
@@ -131,11 +147,33 @@ function EditProfileForm({ onDone }: { onDone: () => void }) {
       <label className="field-label" htmlFor="profile-name">
         Name
       </label>
-      <input id="profile-name" className="field-input gap-md" value={name} onChange={(e) => setName(e.target.value)} />
-      <LocationFields
-        value={loc}
-        onChange={(key, value) => setLoc((l) => ({ ...l, [key]: value }))}
+      <input
+        id="profile-name"
+        className={`field-input ${nameTouched && nameError ? 'invalid' : ''}`}
+        aria-invalid={nameTouched && !!nameError}
+        aria-describedby={nameTouched && nameError ? 'profile-name-error' : undefined}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onBlur={() => setNameTouched(true)}
       />
+      {nameTouched && nameError ? (
+        <p id="profile-name-error" className="field-error">
+          {nameError}
+        </p>
+      ) : (
+        <div className="gap-md" />
+      )}
+      <LocationFields value={loc} onChange={(key, value) => setLoc((l) => ({ ...l, [key]: value }))} />
+
+      <label className="field-label edit-section-label" htmlFor="profile-book">
+        Book you're studying
+      </label>
+      <BookPicker id="profile-book" value={book} onChange={setBook} />
+
+      <div className="field-label edit-section-label">Interests</div>
+      <InterestPicker value={interests} onChange={setInterests} />
+      {interestsError && <p className="field-error">{interestsError}</p>}
+
       <button type="submit" className="btn-primary edit-save" disabled={!valid || saving}>
         Save
       </button>
@@ -193,6 +231,15 @@ function ProfileMain() {
           <div className="profile-name">{state.name || 'Friend'}</div>
           <div className="profile-location">{state.location || 'Location not set'}</div>
         </div>
+      </div>
+
+      <div className="profile-tags" aria-label="Your book and interests">
+        <span className="profile-tag book">📖 {bookLabel(state.book)}</span>
+        {state.interests.map((i) => (
+          <span key={i} className="profile-tag">
+            {i}
+          </span>
+        ))}
       </div>
 
       <button className="btn-ghost profile-edit-btn" onClick={() => update((s) => ({ editingProfile: !s.editingProfile }))}>

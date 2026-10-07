@@ -1,5 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { CIRCLES_POOL, MEETING_TIMES } from '../data';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { CIRCLES_POOL, INTERESTS, MEETING_TIMES } from '../data';
+import { orderChannels } from '../recommend';
+import { clearSession, getSession, setSession } from '../services/auth';
+import { deleteAccountData, loadAccountData, saveAccountData } from '../services/profile';
 import type {
   Circle,
   CircleId,
@@ -9,6 +12,7 @@ import type {
   NotificationPrefs,
   Prayer,
   ProfileView,
+  OnboardingScreen,
   Screen,
   Tab,
   WallPrayer,
@@ -20,10 +24,12 @@ export interface AppState {
 
   // Account & onboarding
   authMode: 'signup' | 'login';
+  /** Signed-in account; null before sign-up/log-in. */
+  accountId: string | null;
+  /** Finished onboarding, so the account opens straight to Home. */
+  onboarded: boolean;
   name: string;
   email: string;
-  password: string;
-  confirmPassword: string;
   location: string;
   locCity: string;
   locState: string;
@@ -31,7 +37,6 @@ export interface AppState {
   book: string | null;
   interests: string[];
   struggles: string[];
-  customInterest: string;
 
   // Home
   streak: number;
@@ -87,14 +92,67 @@ export const emptyCreateForm = (): CreateForm => ({
   privacy: 'Private',
 });
 
-export const initialState = (): AppState => ({
+/** Everything saved per account. Drafts, search boxes and screen positions are not saved. */
+const ACCOUNT_KEYS = [
+  'onboarded',
+  'name',
+  'email',
+  'location',
+  'locCity',
+  'locState',
+  'locCountry',
+  'book',
+  'interests',
+  'struggles',
+  'streak',
+  'prayers',
+  'joinedCircles',
+  'customCircles',
+  'circleMessages',
+  'discussionMessages',
+  'amenedIds',
+  'avatar',
+  'notifications',
+  'notificationPrefs',
+  'showNameInDiscussions',
+] as const satisfies readonly (keyof AppState)[];
+
+type AccountData = Pick<AppState, (typeof ACCOUNT_KEYS)[number]> & { onboardingStep?: OnboardingScreen };
+
+const ONBOARDING_STEPS: OnboardingScreen[] = ['location', 'book', 'interests', 'struggles'];
+
+/** The discussion channel to open first: the user's first interest, else the pinned channel. */
+export function firstChannel(interests: string[]): string {
+  return orderChannels(interests, INTERESTS)[0];
+}
+
+/** State for a signed-in account: its saved data, opened at Home or where onboarding left off. */
+export function stateForAccount(accountId: string): AppState {
+  const saved = loadAccountData<AccountData>(accountId) ?? {};
+  const { onboardingStep, ...data } = saved;
+  const base = { ...blankState(), ...data, accountId };
+  return {
+    ...base,
+    screen: base.onboarded ? 'app' : onboardingStep && ONBOARDING_STEPS.includes(onboardingStep) ? onboardingStep : 'location',
+    tab: 'home',
+    selectedDiscussion: firstChannel(base.interests),
+  };
+}
+
+/** On launch: a returning user goes straight to their account; otherwise the intro. */
+export const initialState = (): AppState => {
+  const accountId = getSession();
+  return accountId ? stateForAccount(accountId) : blankState();
+};
+
+const blankState = (): AppState => ({
   screen: 'splash',
   tab: 'home',
   authMode: 'signup',
+  accountId: null,
+  onboarded: false,
   name: '',
   email: '',
-  password: '',
-  confirmPassword: '',
   location: '',
   locCity: '',
   locState: '',
@@ -102,7 +160,6 @@ export const initialState = (): AppState => ({
   book: null,
   interests: [],
   struggles: [],
-  customInterest: '',
   streak: 1,
   wallPrayer: {
     author: 'Anonymous',
@@ -112,15 +169,7 @@ export const initialState = (): AppState => ({
     count: 42,
     prayed: false,
   },
-  // Sample prayer so the Prayers page has something to show while accounts don't exist yet.
-  prayers: [
-    {
-      id: 1,
-      text: 'Praying for clarity on a big decision I have to make this month.',
-      status: 'current',
-      createdAt: Date.now() - 3 * 86_400_000,
-    },
-  ],
+  prayers: [],
   myPrayerDraft: '',
   myPrayerAnonymous: false,
   discussionSearch: '',
@@ -151,7 +200,12 @@ type Patch = Partial<AppState> | ((s: AppState) => Partial<AppState>);
 interface Store {
   state: AppState;
   update: (patch: Patch) => void;
+  /** Log out: back to the intro. The account and its data stay saved. */
   reset: () => void;
+  /** Start a session for an account that just signed up or logged in. */
+  signIn: (accountId: string) => void;
+  /** Remove the signed-in account's saved data and log out. */
+  forgetAccount: () => void;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -163,7 +217,37 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, ...(typeof patch === 'function' ? patch(s) : patch) }));
   }, []);
 
-  const reset = useCallback(() => setState(initialState()), []);
+  const reset = useCallback(() => {
+    clearSession();
+    setState(blankState());
+  }, []);
+
+  const signIn = useCallback((accountId: string) => {
+    setSession(accountId);
+    setState(stateForAccount(accountId));
+  }, []);
+
+  const accountRef = useRef(state.accountId);
+  accountRef.current = state.accountId;
+
+  const forgetAccount = useCallback(() => {
+    if (accountRef.current) deleteAccountData(accountRef.current);
+    clearSession();
+    setState(blankState());
+  }, []);
+
+  // Save the signed-in account's data whenever it changes (skipping writes when nothing did).
+  const lastSaved = useRef('');
+  useEffect(() => {
+    if (!state.accountId) return;
+    const data: Partial<AccountData> = {};
+    for (const key of ACCOUNT_KEYS) (data as Record<string, unknown>)[key] = state[key];
+    if (ONBOARDING_STEPS.includes(state.screen as OnboardingScreen)) data.onboardingStep = state.screen as OnboardingScreen;
+    const json = JSON.stringify([state.accountId, data]);
+    if (json === lastSaved.current) return;
+    lastSaved.current = json;
+    saveAccountData(state.accountId, data);
+  }, [state]);
 
   useEffect(() => {
     try {
@@ -173,7 +257,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, [state.darkMode]);
 
-  const store = useMemo(() => ({ state, update, reset }), [state, update, reset]);
+  const store = useMemo(
+    () => ({ state, update, reset, signIn, forgetAccount }),
+    [state, update, reset, signIn, forgetAccount],
+  );
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 

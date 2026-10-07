@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { sameGroup, useStickToBottom } from '../../components/chat';
 import { Icon } from '../../components/Icon';
-import { DISCUSSION_SEED, PINNED_TOPICS } from '../../data';
+import { DISCUSSION_SEED, INTERESTS } from '../../data';
+import { orderChannels } from '../../recommend';
 import { useStore, type AppState } from '../../state/AppState';
 import type { DiscussionMessage } from '../../types';
 import { clockTime, initials } from '../../utils';
-
-const FALLBACK_TOPICS = ['Prayer & Worship', 'Faith Doubts'];
 
 function messagesFor(s: AppState, topic: string): DiscussionMessage[] {
   return (
@@ -32,7 +31,8 @@ export function Discussions() {
   const [searchOpen, setSearchOpen] = useState(discussionSearch !== '');
 
   const query = discussionSearch.trim().toLowerCase();
-  const topics = [...new Set([...PINNED_TOPICS, ...(state.interests.length ? state.interests : FALLBACK_TOPICS)])];
+  // The user's interests come first (from onboarding / Edit Profile), then pinned and other channels.
+  const topics = orderChannels(state.interests, INTERESTS);
   const visibleTopics = topics.filter((t) => t.toLowerCase().includes(query));
   const messages = messagesFor(state, topic).filter(
     (m) => !query || `${m.author} ${m.text}`.toLowerCase().includes(query),

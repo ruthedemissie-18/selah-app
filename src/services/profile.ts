@@ -1,3 +1,5 @@
+import { storage } from './storage';
+
 // Profile persistence. There is no backend yet, so these resolve with the cleaned
 // values the account would store; swap the bodies for API calls later.
 
@@ -82,4 +84,22 @@ export async function resizePhoto(file: File): Promise<string> {
 
 export async function saveAvatar(dataUrl: string | null): Promise<string | null> {
   return dataUrl;
+}
+
+// ---------------------------------------------------------------------------
+// Per-account data: everything a user chose or created, saved in this browser under their
+// account id, so signing in as someone else shows their answers, prayers and photo.
+// ---------------------------------------------------------------------------
+const dataKey = (accountId: string) => `selah-data:${accountId}`;
+
+export function loadAccountData<T extends object>(accountId: string): Partial<T> | null {
+  return storage.getJSON<Partial<T>>(dataKey(accountId));
+}
+
+export function saveAccountData(accountId: string, data: object) {
+  storage.setJSON(dataKey(accountId), data);
+}
+
+export function deleteAccountData(accountId: string) {
+  storage.remove(dataKey(accountId));
 }

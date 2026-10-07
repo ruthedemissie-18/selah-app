@@ -13,10 +13,6 @@ export function firstName(name: string): string {
   return name.trim().split(/\s+/)[0];
 }
 
-export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 export function clockTime(date = new Date()): string {
   const h = date.getHours() % 12 || 12;
   const m = String(date.getMinutes()).padStart(2, '0');

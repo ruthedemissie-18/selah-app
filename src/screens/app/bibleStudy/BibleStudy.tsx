@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Icon } from '../../../components/Icon';
-import { allCircles, findCircle, useStore } from '../../../state/AppState';
+import { groupCircles, type CircleSection, type Place } from '../../../recommend';
+import { allCircles, findCircle, useStore, type AppState } from '../../../state/AppState';
 import type { Circle, CircleId } from '../../../types';
 import { CircleCard, JoinedCircleCard, MAX_JOINED_CIRCLES } from './CircleCards';
 import { CircleChat } from './CircleChat';
@@ -10,17 +11,14 @@ import { JoinConfirmModal, SwapModal } from './JoinModals';
 const FILTERS = ['Local', 'Online', 'Old Testament', 'New Testament'] as const;
 type Filter = (typeof FILTERS)[number];
 
-// Calculation helper for local mapping (Haversine equation)
-function getDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 3958.8;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+/** The user's saved location, if they gave one in onboarding or Edit Profile. */
+function placeOf(s: AppState): Place | null {
+  return s.locCity || s.locCountry ? { city: s.locCity, country: s.locCountry } : null;
+}
+
+/** Orders circles by the user's onboarding answers: near them, their book, their interests, the rest. */
+function sectionsFor(s: AppState, circles: Circle[]): CircleSection[] {
+  return groupCircles(circles, { book: s.book, interests: s.interests, place: placeOf(s) });
 }
 
 function HeaderCard({ onPlus }: { onPlus?: () => void }) {
@@ -54,15 +52,18 @@ type CardActions = { onJoin: (id: CircleId) => void; onLeave: (id: CircleId) => 
 
 function StudyHome({ onJoin, onLeave }: CardActions) {
   const { state, update } = useStore();
-  const { joinedCircles: joined, book } = state;
-  const pool = allCircles(state);
-  const topic = book || 'General Discussion';
+  const { joinedCircles: joined } = state;
   const browse = () => update({ bsView: 'browse' });
 
   const joinedList = joined.map((id) => findCircle(state, id)).filter((c): c is Circle => !!c);
-  const notJoined = pool.filter((c) => !joined.includes(c.id));
-  const matched = notJoined.filter((c) => !book || c.category.toLowerCase() === book.toLowerCase());
-  const recommended = (matched.length ? matched : notJoined).slice(0, 3);
+  const all = sectionsFor(
+    state,
+    allCircles(state).filter((c) => !joined.includes(c.id)),
+  );
+  // Show the sections picked for this user (near / book / interests), 3 circles each.
+  // If none fit, fall back to the first few of "More circles".
+  const matched = all.filter((sec) => sec.key !== 'more');
+  const shown = (matched.length ? matched : all.slice(0, 1)).map((sec) => ({ ...sec, circles: sec.circles.slice(0, 3) }));
 
   return (
     <>
@@ -88,21 +89,27 @@ function StudyHome({ onJoin, onLeave }: CardActions) {
       )}
 
       {/* Recommendations are for getting started; once you're in a circle, find more via + or "Find another group". */}
-      {joinedList.length === 0 && (
-        <div className="bs-section first">
-          <div className="bs-section-top">
-            <span className="eyebrow">Matched to your book</span>
-            <span className="groups-max-inline">2 groups max</span>
+      {joinedList.length === 0 &&
+        shown.map((sec, i) => (
+          <div key={sec.key} className={`bs-section ${i === 0 ? 'first' : ''}`}>
+            {i === 0 && (
+              <div className="bs-section-top">
+                <span className="eyebrow">Matched to you</span>
+                <span className="groups-max-inline">2 groups max</span>
+              </div>
+            )}
+            <h2 className="bs-heading">{sec.title}</h2>
+            {i === 0 && <div className="bs-subtext">Pick a circle to start growing together.</div>}
+            {sec.circles.map((c) => (
+              <CircleCard key={c.id} circle={c} joined={joined} onJoin={onJoin} onLeave={onLeave} />
+            ))}
           </div>
-          <h2 className="bs-heading">Spaces studying {topic}</h2>
-          <div className="bs-subtext">Pick a circle to start growing together.</div>
-          {recommended.length ? (
-            recommended.map((c) => <CircleCard key={c.id} circle={c} joined={joined} onJoin={onJoin} onLeave={onLeave} />)
-          ) : (
-            <div className="empty-box">
-              We don't have a {topic} circle open right now, but new groups are starting soon. Explore others via search!
-            </div>
-          )}
+        ))}
+      {joinedList.length === 0 && (
+        <div className="bs-section">
+          <button className="find-another-link" onClick={browse}>
+            See all circles
+          </button>
         </div>
       )}
     </>
@@ -112,24 +119,7 @@ function StudyHome({ onJoin, onLeave }: CardActions) {
 function StudyBrowse({ onJoin, onLeave }: CardActions) {
   const { state, update } = useStore();
   const [createOpen, setCreateOpen] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { circleSearch, circleFilters, joinedCircles } = state;
-
-  // --- DEVICE GEOLOCATION LOGIC ATTACHED TO "LOCAL" FILTER CHIP ---
-  useEffect(() => {
-    if (circleFilters.includes('Local') && !coords) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoords({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (err) => console.error("Location lookup declined:", err),
-        { enableHighAccuracy: true }
-      );
-    }
-  }, [circleFilters, coords]);
 
   const toggleFilter = (f: Filter) =>
     update((s) => ({
@@ -145,28 +135,16 @@ function StudyBrowse({ onJoin, onLeave }: CardActions) {
     'New Testament': (c) => c.testament === 'NT',
   };
 
-  const query = circleSearch.toLowerCase();
-
-  let results = allCircles(state).filter((c) => {
-    const matchesSearch = `${c.name} ${c.category} ${c.leader}`.toLowerCase().includes(query);
-    if (!matchesSearch) return false;
+  const query = circleSearch.trim().toLowerCase();
+  const results = allCircles(state).filter((c) => {
+    const haystack = `${c.name} ${c.category} ${c.leader} ${c.city ?? ''} ${(c.topics ?? []).join(' ')}`.toLowerCase();
+    if (!haystack.includes(query)) return false;
     if (!circleFilters.length) return true;
     return circleFilters.some((f) => FILTER_MATCHERS[f as Filter]?.(c) ?? true);
   });
-
-  // Organizes array items dynamically using calculated proximity weights
-  if (circleFilters.includes('Local') && coords) {
-    results = [...results].sort((a, b) => {
-      const latA = (a as any).latitude || (coords.lat + (Math.random() - 0.5) * 0.1);
-      const lngA = (a as any).longitude || (coords.lng + (Math.random() - 0.5) * 0.1);
-      const latB = (b as any).latitude || (coords.lat + (Math.random() - 0.5) * 0.1);
-      const lngB = (b as any).longitude || (coords.lng + (Math.random() - 0.5) * 0.1);
-
-      const distA = getDistanceInMiles(coords.lat, coords.lng, latA, lngA);
-      const distB = getDistanceInMiles(coords.lat, coords.lng, latB, lngB);
-      return distA - distB;
-    });
-  }
+  // Same order as Home: local circles near them, their book, their interests, then the rest.
+  const sections = sectionsFor(state, results);
+  const place = placeOf(state);
 
   return (
     <>
@@ -189,7 +167,8 @@ function StudyBrowse({ onJoin, onLeave }: CardActions) {
       <div className="search-wrap browse-search">
         <input
           className="field-input"
-          placeholder="Search by book, leader, or topic..."
+          placeholder="Search by book, leader, topic or city..."
+          aria-label="Search circles"
           value={circleSearch}
           onChange={(e) => update({ circleSearch: e.target.value })}
         />
@@ -208,15 +187,19 @@ function StudyBrowse({ onJoin, onLeave }: CardActions) {
       </div>
 
       <div className="results-count">
-        {results.length} circles found {coords && circleFilters.includes('Local') && '• Nearest Ordered 📍'}
+        {results.length} {results.length === 1 ? 'circle' : 'circles'} found
+        {!place && circleFilters.includes('Local') && ' · Add your city in Profile to see studies near you'}
       </div>
 
-      {results.length ? (
-        <div className="bs-list">
-          {results.map((c) => (
-            <CircleCard key={c.id} circle={c} joined={joinedCircles} onJoin={onJoin} onLeave={onLeave} />
-          ))}
-        </div>
+      {sections.length ? (
+        sections.map((sec) => (
+          <div key={sec.key} className="bs-list">
+            <h3 className="bs-list-heading">{sec.title}</h3>
+            {sec.circles.map((c) => (
+              <CircleCard key={c.id} circle={c} joined={joinedCircles} onJoin={onJoin} onLeave={onLeave} />
+            ))}
+          </div>
+        ))
       ) : (
         <div className="empty-note">No circles match your search.</div>
       )}

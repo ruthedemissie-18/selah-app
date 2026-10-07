@@ -1,4 +1,7 @@
+import { GENERAL_FELLOWSHIP, PINNED_CHANNELS } from './recommend';
 import type { Circle, CircleMessage, DiscussionMessage } from './types';
+
+export { GENERAL_FELLOWSHIP };
 
 export const STRUGGLES = [
   'Anxiety & Worry',
@@ -38,7 +41,6 @@ export const NT_BOOKS = [
   '1 Peter', '1 John', 'Revelation',
 ];
 
-export const GENERAL_FELLOWSHIP = 'Just browsing / General Fellowship';
 
 export const BOOK_GROUPS: { label: string | null; items: string[] }[] = [
   { label: null, items: [GENERAL_FELLOWSHIP] },
@@ -48,15 +50,15 @@ export const BOOK_GROUPS: { label: string | null; items: string[] }[] = [
 ];
 
 export const CIRCLES_POOL: Circle[] = [
-  { id: 1, category: 'PSALMS', name: 'Finding Peace in God', leader: 'Pastor Michael', time: 'Wednesdays, 7:00 PM', members: 14, capacity: 15, testament: 'OT', format: 'Online', description: "Finding stillness in God's presence.", currentChapter: 'Psalm 23', moderatorBio: 'Pastor Michael shepherds this circle with gentle, steady wisdom.', length: '6-week study · ~45 min sessions' },
-  { id: 2, category: 'ROMANS', name: 'Romans Deep Dive', leader: 'Grace L.', time: 'Sundays, 4:00 PM', members: 9, capacity: 15, testament: 'NT', format: 'Local', description: 'Unpacking grace, faith, and truth in Romans.', currentChapter: 'Romans 5', moderatorBio: 'Grace leads thoughtful, honest conversation each week.', length: '8-week study · ~60 min sessions' },
-  { id: 3, category: 'PROVERBS', name: 'Proverbs for Daily Wisdom', leader: 'Marcus T.', time: 'Flexible / Online Anytime', members: 12, capacity: 15, testament: 'OT', format: 'Online', description: 'Everyday wisdom for everyday life.', currentChapter: 'Proverbs 3', moderatorBio: 'Marcus brings practical insight to ancient wisdom.', length: 'Ongoing · ~30 min sessions' },
-  { id: 4, category: 'JOHN', name: 'The Gospel of John', leader: 'Elena R.', time: 'Tuesdays, 8:00 PM', members: 15, capacity: 15, testament: 'NT', format: 'Online', description: "Encountering Jesus through John's eyes.", currentChapter: 'John 4', moderatorBio: 'Elena loves walking through Scripture verse by verse.', length: '10-week study · ~50 min sessions' },
-  { id: 5, category: 'EPHESIANS', name: 'Standing Firm', leader: 'David K.', time: 'Thursdays, 6:30 PM', members: 6, capacity: 15, testament: 'NT', format: 'Local', description: 'Standing strong through spiritual battles.', currentChapter: 'Ephesians 6', moderatorBio: 'David leads with humor, honesty, and heart.', length: '6-week study · ~45 min sessions' },
-  { id: 6, category: 'PSALMS', name: 'Lament & Hope', leader: 'Sarah J.', time: 'Mondays, 7:30 PM', members: 11, capacity: 15, testament: 'OT', format: 'Online', description: 'Holding grief and hope together in the Psalms.', currentChapter: 'Psalm 42', moderatorBio: 'Sarah creates a safe space for hard seasons.', length: '6-week study · ~45 min sessions' },
-  { id: 7, category: 'JUDGES', name: 'Judges: Journey', leader: 'Rebekah P.', time: 'Thursdays, 8:00 PM', members: 9, capacity: 15, testament: 'OT', format: 'Online', description: "Discovering God's heart in Judges", currentChapter: 'Judges 6', moderatorBio: 'Rebekah has walked with this circle for two seasons, holding space for honest questions.', length: '6-week study · ~60 min sessions' },
-  { id: 8, category: 'GENESIS', name: 'Genesis: Journey', leader: 'Maya T.', time: 'Sundays, 9:00 AM', members: 3, capacity: 15, testament: 'OT', format: 'Online', description: 'Walking through the beginning, together.', currentChapter: 'Genesis 3', moderatorBio: 'Maya loves helping new believers find their footing in Scripture.', length: '8-week study · ~45 min sessions', live: true },
-  { id: 9, category: 'GENESIS', name: 'Genesis: Reflections', leader: 'Hannah S.', time: 'Wednesdays, 6:00 PM', members: 4, capacity: 15, testament: 'OT', format: 'Online', description: 'Reflecting on the stories that shaped us.', currentChapter: 'Genesis 12', moderatorBio: 'Hannah leads with warmth and loves a good discussion question.', length: '8-week study · ~50 min sessions' },
+  { id: 1, category: 'PSALMS', name: 'Finding Peace in God', leader: 'Pastor Michael', time: 'Wednesdays, 7:00 PM', members: 14, capacity: 15, testament: 'OT', format: 'Online', description: "Finding stillness in God's presence.", currentChapter: 'Psalm 23', moderatorBio: 'Pastor Michael shepherds this circle with gentle, steady wisdom.', length: '6-week study · ~45 min sessions', topics: ['Prayer & Worship', 'Spiritual Disciplines'] },
+  { id: 2, category: 'ROMANS', name: 'Romans Deep Dive', leader: 'Grace L.', time: 'Sundays, 4:00 PM', members: 9, capacity: 15, testament: 'NT', format: 'Local', description: 'Unpacking grace, faith, and truth in Romans.', currentChapter: 'Romans 5', moderatorBio: 'Grace leads thoughtful, honest conversation each week.', length: '8-week study · ~60 min sessions', topics: ['Theology & Doctrine', 'Apologetics'], city: 'La Mirada', country: 'United States' },
+  { id: 3, category: 'PROVERBS', name: 'Proverbs for Daily Wisdom', leader: 'Marcus T.', time: 'Flexible / Online Anytime', members: 12, capacity: 15, testament: 'OT', format: 'Online', description: 'Everyday wisdom for everyday life.', currentChapter: 'Proverbs 3', moderatorBio: 'Marcus brings practical insight to ancient wisdom.', length: 'Ongoing · ~30 min sessions', topics: ['Spiritual Disciplines', 'Marriage & Family'] },
+  { id: 4, category: 'JOHN', name: 'The Gospel of John', leader: 'Elena R.', time: 'Tuesdays, 8:00 PM', members: 15, capacity: 15, testament: 'NT', format: 'Online', description: "Encountering Jesus through John's eyes.", currentChapter: 'John 4', moderatorBio: 'Elena loves walking through Scripture verse by verse.', length: '10-week study · ~50 min sessions', topics: ['Missions & Outreach', 'Youth Ministry'] },
+  { id: 5, category: 'EPHESIANS', name: 'Standing Firm', leader: 'David K.', time: 'Thursdays, 6:30 PM', members: 6, capacity: 15, testament: 'NT', format: 'Local', description: 'Standing strong through spiritual battles.', currentChapter: 'Ephesians 6', moderatorBio: 'David leads with humor, honesty, and heart.', length: '6-week study · ~45 min sessions', topics: ['Youth Ministry', 'Spiritual Disciplines'], city: 'Los Angeles', country: 'United States' },
+  { id: 6, category: 'PSALMS', name: 'Lament & Hope', leader: 'Sarah J.', time: 'Mondays, 7:30 PM', members: 11, capacity: 15, testament: 'OT', format: 'Online', description: 'Holding grief and hope together in the Psalms.', currentChapter: 'Psalm 42', moderatorBio: 'Sarah creates a safe space for hard seasons.', length: '6-week study · ~45 min sessions', topics: ['Prayer & Worship', 'Worship & Music'] },
+  { id: 7, category: 'JUDGES', name: 'Judges: Journey', leader: 'Rebekah P.', time: 'Thursdays, 8:00 PM', members: 9, capacity: 15, testament: 'OT', format: 'Online', description: "Discovering God's heart in Judges", currentChapter: 'Judges 6', moderatorBio: 'Rebekah has walked with this circle for two seasons, holding space for honest questions.', length: '6-week study · ~60 min sessions', topics: ['Church History', 'Theology & Doctrine'] },
+  { id: 8, category: 'GENESIS', name: 'Genesis: Journey', leader: 'Maya T.', time: 'Sundays, 9:00 AM', members: 3, capacity: 15, testament: 'OT', format: 'Online', description: 'Walking through the beginning, together.', currentChapter: 'Genesis 3', moderatorBio: 'Maya loves helping new believers find their footing in Scripture.', length: '8-week study · ~45 min sessions', live: true, topics: ['Youth Ministry', 'Apologetics'] },
+  { id: 9, category: 'GENESIS', name: 'Genesis: Reflections', leader: 'Hannah S.', time: 'Wednesdays, 6:00 PM', members: 4, capacity: 15, testament: 'OT', format: 'Online', description: 'Reflecting on the stories that shaped us.', currentChapter: 'Genesis 12', moderatorBio: 'Hannah leads with warmth and loves a good discussion question.', length: '8-week study · ~50 min sessions', topics: ['Theology & Doctrine', 'Church History'] },
 ];
 
 export const MEETING_TIMES = [
@@ -76,7 +78,7 @@ export const SCRIPTURE_OF_DAY = {
   ref: 'Psalm 34:18',
 };
 
-export const PINNED_TOPICS = ['Daily Scripture Reflections'];
+export const PINNED_TOPICS = PINNED_CHANNELS;
 
 export const DISCUSSION_SEED: Record<string, { category: string; messages: DiscussionMessage[] }> = {
   'Daily Scripture Reflections': {

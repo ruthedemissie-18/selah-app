@@ -1,17 +1,24 @@
 import { STRUGGLES } from '../../data';
-import { useStore } from '../../state/AppState';
+import { firstChannel, useStore } from '../../state/AppState';
 import { toggle } from '../../utils';
 import { OnboardingLayout, StepHeading } from './OnboardingLayout';
 
 export function Struggles() {
   const { state, update } = useStore();
-  const finish = () => update({ screen: 'transition' });
+  // Finish marks onboarding done on the account, so next time it opens straight to Home.
+  const finish = (struggles?: string[]) =>
+    update((s) => ({
+      ...(struggles && { struggles }),
+      onboarded: true,
+      selectedDiscussion: firstChannel(s.interests),
+      screen: 'transition',
+    }));
 
   return (
     <OnboardingLayout
       step="struggles"
       footer={
-        <button className="btn-primary" onClick={finish}>
+        <button className="btn-primary" onClick={() => finish()}>
           Finish
         </button>
       }
@@ -35,7 +42,7 @@ export function Struggles() {
       </div>
 
       <div className="skip-row">
-        <button className="btn-link" onClick={finish}>
+        <button className="btn-link" onClick={() => finish([])}>
           Prefer not to say
         </button>
       </div>

@@ -1010,6 +1010,14 @@ textarea.field-input {
 .bs-list {
   padding: 10px 20px 0;
 }
+.bs-list-heading {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 6px 0 10px;
+}
 .bs-section.browse-intro {
   margin-top: 6px;
 }
@@ -1797,7 +1805,46 @@ textarea.field-input {
   white-space: nowrap;
 }
 .edit-save {
-  margin-top: 18px;
+  margin-top: 24px;
+}
+.edit-section-label {
+  margin-top: 16px;
+}
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 16px;
+}
+.profile-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+.profile-tag.book {
+  background: var(--success-bg);
+  border-color: transparent;
+  color: var(--success-text);
+}
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-field .field-error {
+  margin-bottom: 0;
+}
+.field-hint {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+.select-placeholder {
+  color: var(--ink-soft);
 }
 .profile-name {
   font-family: var(--serif);

@@ -3,7 +3,8 @@ import { BottomSheet, CenterModal, Toast, type ToastData } from '../../component
 import { MenuCard, MenuRow, PageHeader, SectionLabel, Switch } from '../../components/ProfileUI';
 import { useStore } from '../../state/AppState';
 import type { NotificationPrefs } from '../../types';
-import { isValidEmail } from '../../utils';
+import { AUTH_MESSAGES, changeEmail, changePassword, deleteAccount } from '../../services/auth';
+import { MIN_PASSWORD, normalizeEmail, validateEmail, validatePassword } from '../../validation';
 
 const NOTIFICATION_TYPES: { key: keyof NotificationPrefs; label: string }[] = [
   { key: 'dailyVerse', label: 'Daily verse' },
@@ -12,22 +13,24 @@ const NOTIFICATION_TYPES: { key: keyof NotificationPrefs; label: string }[] = [
   { key: 'discussionReplies', label: 'Discussion replies' },
 ];
 
-const MIN_PASSWORD = 8;
-
 type Sheet = 'email' | 'password' | 'blocked' | null;
 
-// UI only for now: there's no account system yet, so these forms don't change real credentials.
 function ChangeEmailSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const { state, update } = useStore();
   const [email, setEmail] = useState(state.email);
-  const valid = isValidEmail(email.trim()) && email.trim() !== state.email;
+  const [error, setError] = useState<string | null>(null);
+  const formatError = email.trim() ? validateEmail(email) : null;
+  const valid = !formatError && normalizeEmail(email) !== state.email && !!email.trim();
 
   const save = (e: FormEvent) => {
     e.preventDefault();
-    if (!valid) return;
-    update({ email: email.trim() });
+    if (!valid || !state.accountId) return;
+    const res = changeEmail(state.accountId, email);
+    if (res.error) return setError(AUTH_MESSAGES[res.error]);
+    update({ email: normalizeEmail(email) });
     onSaved();
   };
+  const shownError = error ?? formatError;
 
   return (
     <BottomSheet title="Change email" onClose={onClose}>
@@ -39,11 +42,15 @@ function ChangeEmailSheet({ onClose, onSaved }: { onClose: () => void; onSaved: 
           id="new-email"
           type="email"
           autoFocus
-          className="field-input"
           placeholder="you@example.com"
+          className={`field-input ${shownError ? 'invalid' : ''}`}
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError(null);
+          }}
         />
+        {shownError && <p className="field-error flush-bottom">{shownError}</p>}
         <button type="submit" className="btn-primary sheet-submit" disabled={!valid}>
           Save email
         </button>
@@ -53,16 +60,27 @@ function ChangeEmailSheet({ onClose, onSaved }: { onClose: () => void; onSaved: 
 }
 
 function ChangePasswordSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const { state } = useStore();
   const [current, setCurrent] = useState('');
+  const [wrongCurrent, setWrongCurrent] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
-  const tooShort = next.length > 0 && next.length < MIN_PASSWORD;
+  const tooShort = next.length > 0 && !!validatePassword(next);
   const mismatch = confirm.length > 0 && confirm !== next;
   const valid = current.length > 0 && next.length >= MIN_PASSWORD && confirm === next;
 
-  const save = (e: FormEvent) => {
+  const save = async (e: FormEvent) => {
     e.preventDefault();
-    if (valid) onSaved();
+    if (!valid || busy || !state.accountId) return;
+    setBusy(true);
+    try {
+      const res = await changePassword(state.accountId, current, next);
+      if (res.error) return setWrongCurrent(true);
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -75,10 +93,14 @@ function ChangePasswordSheet({ onClose, onSaved }: { onClose: () => void; onSave
           id="pw-current"
           type="password"
           autoFocus
-          className="field-input gap-md"
+          className={`field-input ${wrongCurrent ? 'invalid gap-xs' : 'gap-md'}`}
           value={current}
-          onChange={(e) => setCurrent(e.target.value)}
+          onChange={(e) => {
+            setCurrent(e.target.value);
+            setWrongCurrent(false);
+          }}
         />
+        {wrongCurrent && <p className="field-error">That password isn't right</p>}
         <label className="field-label" htmlFor="pw-new">
           New password
         </label>
@@ -102,8 +124,8 @@ function ChangePasswordSheet({ onClose, onSaved }: { onClose: () => void; onSave
           onChange={(e) => setConfirm(e.target.value)}
         />
         {mismatch && <p className="field-error flush-bottom">Passwords don't match</p>}
-        <button type="submit" className="btn-primary sheet-submit" disabled={!valid}>
-          Update password
+        <button type="submit" className="btn-primary sheet-submit" disabled={!valid || busy}>
+          {busy ? 'Updating…' : 'Update password'}
         </button>
       </form>
     </BottomSheet>
@@ -111,7 +133,7 @@ function ChangePasswordSheet({ onClose, onSaved }: { onClose: () => void; onSave
 }
 
 export function Settings() {
-  const { state, update, reset } = useStore();
+  const { state, update, forgetAccount } = useStore();
   const [sheet, setSheet] = useState<Sheet>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
@@ -196,7 +218,13 @@ export function Settings() {
             <button className="modal-btn-ghost" onClick={() => setConfirmDelete(false)}>
               Cancel
             </button>
-            <button className="modal-btn-danger" onClick={reset}>
+            <button
+              className="modal-btn-danger"
+              onClick={() => {
+                if (state.accountId) deleteAccount(state.accountId);
+                forgetAccount();
+              }}
+            >
               Delete
             </button>
           </div>
