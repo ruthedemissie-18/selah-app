@@ -6,7 +6,7 @@ import './intro.css';
 /*
   Selah intro (ported from selah-intro.html)
 
-    1. Opening screen: the logo fades in. Tapping it zooms the fish until it fills the screen,
+    1. Opening screen: the logo fades in. Tapping anywhere zooms the fish until it fills the screen,
        while the SELAH lettering moves into place as the big heading of the story.
     2. Story: scrolling reveals the text one line at a time; a line on the left grows as you
        scroll. NEXT buttons scroll to the following part.
@@ -228,7 +228,7 @@ export function Splash() {
     /* ---------- Clicks ---------- */
     const onClick = (e: MouseEvent) => {
       const target = e.target as Element;
-      if (target.closest('.logo-stage')) return openIntro();
+      if (target.closest('.opening')) return openIntro();
       const next = target.closest<HTMLElement>('[data-next]');
       if (next) return scrollToBeat(next.dataset.next!);
       if (target.closest('.cta-btn')) updateRef.current({ screen: 'auth' });
@@ -376,7 +376,7 @@ export function Splash() {
         </div>
       </div>
 
-      {/* Opening screen: logo fades in; tap it to begin */}
+      {/* Opening screen: logo fades in; tap anywhere to begin */}
       <div className="opening">
         <button className="logo-stage" aria-label="Open the Selah intro" disabled>
           <svg className="logo-fish" viewBox="33 72 349 114" aria-hidden="true">

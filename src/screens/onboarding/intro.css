@@ -46,6 +46,8 @@
   align-items: center;
   justify-content: center;
   gap: 34px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 /* once tapped, the background clears so the story is already in place under the zooming fish */
 .intro .opening.go {
