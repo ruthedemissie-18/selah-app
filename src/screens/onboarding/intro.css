@@ -1,0 +1,380 @@
+/* =========================================================
+   Selah intro (first screen). Ported from selah-intro.html;
+   everything is scoped under .intro so it can't clash with
+   the app's own classes (.eyebrow, .verse-card, ...).
+   ========================================================= */
+.intro {
+  --logo-brown: #71482c;
+  --logo-sage: #82846c;
+  position: absolute;
+  inset: 0;
+  background: var(--cream);
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+
+.intro .scroller {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.intro .scroller::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .intro .scroller {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ---------- Opening screen ---------- */
+.intro .opening {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background-color: var(--cream);
+  transition: background-color 0.7s ease 0.1s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+/* once tapped, the background clears so the story is already in place under the zooming fish */
+.intro .opening.go {
+  background-color: rgba(255, 245, 236, 0);
+  pointer-events: none;
+}
+.intro .logo-stage {
+  position: relative;
+  width: min(340px, 86%);
+  aspect-ratio: 349 / 114;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+.intro .logo-stage:disabled {
+  cursor: default;
+}
+.intro .logo-stage.fade-in {
+  animation: introLogoIn 1.5s ease forwards;
+}
+@keyframes introLogoIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* soft glow behind the logo — a quiet cue that it can be tapped */
+.intro .logo-stage::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 118%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(113, 72, 44, 0.1), rgba(113, 72, 44, 0) 62%);
+  transform: translate(-50%, -50%) scale(0.82);
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
+  animation: introGlow 3.4s ease-in-out 1.6s infinite;
+}
+@keyframes introGlow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+.intro .logo-fish,
+.intro .logo-letters {
+  display: block;
+  overflow: visible;
+  will-change: transform;
+}
+.intro .logo-fish {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.intro .logo-letters {
+  position: absolute;
+  left: 11.175%;
+  top: 15.789%;
+  width: 63.61%;
+  height: 63.158%;
+}
+.intro .logo-letters path {
+  fill: var(--logo-sage);
+}
+
+.intro .open-hint {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.intro .open-hint.on {
+  opacity: 0.85;
+}
+.intro .opening.go .open-hint {
+  opacity: 0;
+  transition-duration: 0.2s;
+}
+
+/* ---------- Story layout ---------- */
+.intro .intro-wrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.intro .spine {
+  position: relative;
+}
+.intro .line-track {
+  position: absolute;
+  left: 30px;
+  top: 60px;
+  bottom: 0;
+  width: 2px;
+  background: rgba(75, 81, 54, 0.15);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.9s ease 0.3s;
+}
+.intro.is-open .line-track {
+  opacity: 1;
+}
+.intro .line-fill {
+  position: absolute;
+  left: 30px;
+  top: 60px;
+  width: 2px;
+  height: 0;
+  background: var(--olive);
+  border-radius: 2px;
+}
+
+.intro .beat {
+  min-height: calc(var(--screen-h, 640px) * 0.82);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 56px 32px 56px 74px;
+  position: relative;
+}
+
+/* each line / element fades up when it scrolls into view */
+.intro .line {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+.intro .line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.intro .eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--walnut);
+  text-transform: uppercase;
+}
+.intro .copy {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 4px;
+}
+
+/* The big word is the logo lettering itself (same shape, same colour).
+   The lettering from the opening screen moves onto it, then it takes over. */
+.intro .intro-heading {
+  margin: 0;
+  line-height: 0;
+}
+.intro .intro-word {
+  display: block;
+  width: min(250px, 100%);
+  height: auto;
+  aspect-ratio: 222 / 72;
+  overflow: visible;
+  opacity: 0;
+}
+.intro .intro-word path {
+  fill: var(--logo-sage);
+}
+.intro .intro-word.show {
+  opacity: 1;
+}
+
+/* fish that draws itself */
+.intro .fish-draw {
+  width: 230px;
+  height: auto;
+  margin-bottom: 22px;
+  overflow: visible;
+}
+.intro .fish-draw .m {
+  stroke: #fff;
+  stroke-width: 15;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 2s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+.intro .fish-draw.visible .m {
+  stroke-dashoffset: 0;
+}
+
+.intro .verse-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 14px rgba(46, 42, 34, 0.06);
+}
+.intro .verse-quote {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.intro .verse-source {
+  margin-top: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--walnut);
+  text-transform: uppercase;
+}
+
+.intro .next-btn {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1.5px solid var(--olive);
+  color: var(--olive);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 11px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.intro .next-btn:active {
+  transform: scale(0.97);
+}
+.intro .next-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- Last part: swirl + CTA ---------- */
+.intro .beat-last {
+  justify-content: flex-end;
+  padding-top: 56px;
+  padding-bottom: 104px;
+  min-height: calc(var(--screen-h, 640px) * 0.85);
+}
+.intro .swirl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 120px;
+  overflow: visible;
+}
+.intro .swirl path {
+  fill: none;
+  stroke: var(--olive);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.intro .cta-heading {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+.intro .cta-sub {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 18px 0 36px;
+  text-wrap: pretty;
+}
+/* The story text is indented 74px on the left (for the line) and 32px on the right.
+   The button is shifted left by the 42px difference so it has 32px on both sides and is centered on the screen. */
+.intro .cta-wrap {
+  width: calc(100% + 42px);
+  margin-left: -42px;
+}
+.intro .cta-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--olive);
+  color: var(--white);
+  border: none;
+  padding: 18px 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.intro .cta-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.intro .cta-btn:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro .logo-stage::before {
+    animation: none;
+  }
+}
