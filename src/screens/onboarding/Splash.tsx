@@ -41,6 +41,7 @@ export function Splash() {
     const logoFish = $<SVGSVGElement>('.logo-fish');
     const logoLetters = $<SVGSVGElement>('.logo-letters');
     const openHint = $<HTMLDivElement>('.open-hint');
+    const loginLink = $<HTMLButtonElement>('.login-link');
     const introWord = $<SVGSVGElement>('.intro-word');
     const spine = $<HTMLDivElement>('.spine');
     const lineFill = $<HTMLDivElement>('.line-fill');
@@ -83,6 +84,7 @@ export function Splash() {
       logoBtn.classList.add('fade-in');
       later(() => {
         logoBtn.disabled = false;
+        loginLink.classList.add('on');
       }, 1500);
       later(() => openHint.classList.add('on'), 1900);
     };
@@ -228,10 +230,34 @@ export function Splash() {
     /* ---------- Clicks ---------- */
     const onClick = (e: MouseEvent) => {
       const target = e.target as Element;
+      if (target.closest('.login-link')) return updateRef.current({ screen: 'auth', authMode: 'login' });
       if (target.closest('.opening')) return openIntro();
       const next = target.closest<HTMLElement>('[data-next]');
       if (next) return scrollToBeat(next.dataset.next!);
-      if (target.closest('.cta-btn')) updateRef.current({ screen: 'auth' });
+      if (target.closest('.cta-btn')) updateRef.current({ screen: 'auth', authMode: 'signup' });
+    };
+    /* Enter: open the intro, then step to the next part (or sign-up from the last one) */
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.repeat) return;
+      if ((e.target as Element | null)?.closest('button')) return; // a focused button already clicks itself
+      e.preventDefault();
+      if (!opened) return openIntro();
+      if (opening.style.display !== 'none') return; // still zooming in
+      // the part closest to the middle of the screen is the one being read
+      const mid = scroller.getBoundingClientRect().top + scroller.clientHeight / 2;
+      let current: HTMLElement | null = null;
+      let best = Infinity;
+      root.querySelectorAll<HTMLElement>('[data-beat]').forEach((beat) => {
+        const r = beat.getBoundingClientRect();
+        const dist = Math.abs(r.top + r.height / 2 - mid);
+        if (dist < best) {
+          best = dist;
+          current = beat;
+        }
+      });
+      const next = (current as HTMLElement | null)?.querySelector<HTMLElement>('[data-next]');
+      if (next) scrollToBeat(next.dataset.next!);
+      else updateRef.current({ screen: 'auth', authMode: 'signup' });
     };
     const onResize = () => {
       sizeBeats();
@@ -241,6 +267,7 @@ export function Splash() {
     root.addEventListener('click', onClick);
     scroller.addEventListener('scroll', updateSpine, { passive: true });
     window.addEventListener('resize', onResize);
+    window.addEventListener('keydown', onKeyDown);
 
     /* ---------- Start ---------- */
     sizeBeats();
@@ -260,6 +287,7 @@ export function Splash() {
       root.removeEventListener('click', onClick);
       scroller.removeEventListener('scroll', updateSpine);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, []);
 
@@ -309,24 +337,18 @@ export function Splash() {
                 </g>
               </svg>
               <div className="eyebrow line" style={delay(0)}>
-                The Fish
+                The ichthys.
               </div>
               <p className="copy line" style={delay(140, { marginTop: 14 })}>
-                The ichthys.
-              </p>
-              <p className="copy line" style={delay(280)}>
                 An ancient symbol believers
               </p>
-              <p className="copy line" style={delay(420)}>
+              <p className="copy line" style={delay(280)}>
                 once used to recognize
               </p>
-              <p className="copy line" style={delay(560)}>
-                one another in secret —
+              <p className="copy line" style={delay(420)}>
+                one another in secret.
               </p>
-              <p className="copy line" style={delay(700)}>
-                a quiet sign of faith and belonging.
-              </p>
-              <NextButton to="beat2" delayMs={840} />
+              <NextButton to="beat2" delayMs={560} />
             </section>
 
             {/* Part 3 — the verse */}
@@ -387,6 +409,9 @@ export function Splash() {
           </svg>
         </button>
         <div className="open-hint">Tap to begin</div>
+        <button className="login-link">
+          Have an account? <span>Log in</span>
+        </button>
       </div>
     </div>
   );

@@ -50,6 +50,13 @@ export function Interests() {
           placeholder="Add your own topic"
           value={customInterest}
           onChange={(e) => update({ customInterest: e.target.value })}
+          onKeyDown={(e) => {
+            // Enter adds the topic instead of continuing (unless the field is empty)
+            if (e.key === 'Enter' && customInterest.trim()) {
+              e.preventDefault();
+              addCustom();
+            }
+          }}
         />
         <button className="btn-ghost btn-ghost-compact" onClick={addCustom}>
           Add

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { ONBOARD_STEPS } from '../../data';
 import { useStore } from '../../state/AppState';
 import type { OnboardingScreen } from '../../types';
@@ -37,13 +37,34 @@ interface Props {
 }
 
 export function OnboardingLayout({ step, centered, footer, children }: Props) {
+  const footRef = useRef<HTMLDivElement>(null);
+
+  // Enter presses the main footer button (Continue / Finish), unless focus is on another button,
+  // a field already handled Enter itself, or a sheet/modal is open on top.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.repeat || e.isComposing || e.defaultPrevented) return;
+      const target = e.target as Element | null;
+      if (target?.closest('button, a, textarea, select')) return;
+      if (document.querySelector('.sheet-backdrop, .center-modal-backdrop')) return;
+      const primary = footRef.current?.querySelector<HTMLButtonElement>('.btn-primary');
+      if (!primary || primary.disabled) return;
+      e.preventDefault();
+      primary.click();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
     <div className="onboard-wrap">
       <div className="onboard-top">
         <StepDots current={step} />
       </div>
       <div className={`onboard-body ${centered ? 'center-content' : ''}`}>{children}</div>
-      <div className="onboard-foot">{footer}</div>
+      <div className="onboard-foot" ref={footRef}>
+        {footer}
+      </div>
     </div>
   );
 }
