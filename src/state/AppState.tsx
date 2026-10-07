@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { CIRCLES_POOL, MEETING_TIMES } from '../data';
 import type {
   Circle,
@@ -58,6 +58,17 @@ export interface AppState {
 
   // Profile
   editingProfile: boolean;
+  darkMode: boolean; // remembered on this device
+}
+
+const DARK_MODE_KEY = 'selah-dark-mode';
+
+function loadDarkMode(): boolean {
+  try {
+    return localStorage.getItem(DARK_MODE_KEY) === '1';
+  } catch {
+    return false;
+  }
 }
 
 export const emptyCreateForm = (): CreateForm => ({
@@ -112,6 +123,7 @@ export const initialState = (): AppState => ({
   circleFilters: [],
   createForm: emptyCreateForm(),
   editingProfile: false,
+  darkMode: loadDarkMode(),
 });
 
 type Patch = Partial<AppState> | ((s: AppState) => Partial<AppState>);
@@ -132,6 +144,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reset = useCallback(() => setState(initialState()), []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DARK_MODE_KEY, state.darkMode ? '1' : '0');
+    } catch {
+      // storage unavailable (private mode etc.): the setting just won't be remembered
+    }
+  }, [state.darkMode]);
 
   const store = useMemo(() => ({ state, update, reset }), [state, update, reset]);
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

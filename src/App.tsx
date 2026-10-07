@@ -75,7 +75,7 @@ function Phone() {
 
   return (
     <OverlayRootContext.Provider value={overlayRoot}>
-      <div className="phone">
+      <div className={`phone ${inApp && state.darkMode ? 'dark' : ''}`}>
         <div className="notch" />
         <div className="screen" ref={screenRef}>
           <ScreenView />

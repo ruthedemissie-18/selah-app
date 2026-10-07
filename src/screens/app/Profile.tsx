@@ -81,6 +81,16 @@ export function Profile() {
             <span className="settings-value">{value}</span>
           </div>
         ))}
+        <div className="settings-row">
+          <span id="dark-mode-label">Dark Mode</span>
+          <button
+            className="switch"
+            role="switch"
+            aria-checked={state.darkMode}
+            aria-labelledby="dark-mode-label"
+            onClick={() => update((s) => ({ darkMode: !s.darkMode }))}
+          />
+        </div>
       </div>
 
       <div className="card">

@@ -130,8 +130,8 @@ export function Home() {
           <div className="topbar-logo">
             {/* same drawn logo as the intro; fish and lettering share one coordinate space */}
             <svg className="topbar-logo-svg" viewBox="33 72 349 114" role="img" aria-label="Selah logo">
-              <path fillRule="evenodd" fill="#71482C" d={FISH_PATH} />
-              <path fillRule="evenodd" fill="#82846C" d={LETTERS_PATH} />
+              <path className="logo-fish-path" fillRule="evenodd" d={FISH_PATH} />
+              <path className="logo-letters-path" fillRule="evenodd" d={LETTERS_PATH} />
             </svg>
           </div>
           <div>
