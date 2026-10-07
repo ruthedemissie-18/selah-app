@@ -27,6 +27,10 @@ export interface DiscussionMessage {
   time: string;
   text: string;
   amens: number;
+  /** Epoch ms, for grouping. Seed messages have none. */
+  sentAt?: number;
+  /** Sent by the current user. */
+  mine?: boolean;
 }
 
 export interface CircleMessage {

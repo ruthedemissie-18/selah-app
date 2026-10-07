@@ -55,12 +55,19 @@ function inCircleChat(state: AppState): boolean {
   return state.tab === 'biblestudy' && !!findCircle(state, state.activeCircleId);
 }
 
+/** Chat-style screens fill the height and scroll only their message list. */
+function bodyLayout(state: AppState): string {
+  if (inCircleChat(state)) return 'chat-mode';
+  if (state.tab === 'discussions') return 'chat-mode above-tabbar';
+  return '';
+}
+
 function MainApp() {
   const { state } = useStore();
   const View = TABS.find((t) => t.id === state.tab)!.view;
   return (
     // Keyed so each tab (and each Bible Study sub-view) opens scrolled to the top.
-    <div className={`app-body ${inCircleChat(state) ? 'chat-mode' : ''}`} key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}`}>
+    <div className={`app-body ${bodyLayout(state)}`} key={`${state.tab}:${state.bsView}:${state.activeCircleId ?? ''}`}>
       <View />
     </div>
   );

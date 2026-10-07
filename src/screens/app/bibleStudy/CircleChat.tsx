@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { sameGroup as sameSender, useStickToBottom } from '../../../components/chat';
 import { Icon } from '../../../components/Icon';
 import { BottomSheet } from '../../../components/Overlays';
 import { CIRCLE_SEED } from '../../../data';
@@ -15,9 +16,6 @@ function messagesFor(s: AppState, id: CircleId): CircleMessage[] {
   );
 }
 
-/** Consecutive messages from one sender this close together share a bubble group. */
-const GROUP_GAP_MS = 5 * 60 * 1000;
-
 function dayKey(m: CircleMessage): string {
   return new Date(m.sentAt ?? Date.now()).toDateString();
 }
@@ -33,9 +31,7 @@ function dayLabel(m: CircleMessage): string {
 }
 
 function sameGroup(a: CircleMessage, b: CircleMessage): boolean {
-  if (a.author !== b.author || !!a.mine !== !!b.mine || dayKey(a) !== dayKey(b)) return false;
-  // Seed messages have no time, so they group by sender alone.
-  return a.sentAt == null || b.sentAt == null || b.sentAt - a.sentAt <= GROUP_GAP_MS;
+  return dayKey(a) === dayKey(b) && sameSender(a, b);
 }
 
 function titleCase(text: string): string {
@@ -157,36 +153,9 @@ function CircleInfoSheet({ circle, onClose }: { circle: Circle; onClose: () => v
 export function CircleChat({ circle }: { circle: Circle }) {
   const { state, update } = useStore();
   const [infoOpen, setInfoOpen] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const atBottom = useRef(true);
   const messages = messagesFor(state, circle.id);
   const draft = state.circleChatDraft.trim();
-
-  const scrollToBottom = () => {
-    const list = listRef.current;
-    if (list) list.scrollTop = list.scrollHeight;
-  };
-
-  // Newest messages are at the bottom: start there, and follow new ones as they arrive.
-  useLayoutEffect(() => {
-    scrollToBottom();
-    atBottom.current = true;
-  }, [messages.length]);
-
-  // Content can grow after layout (web fonts, emoji); stay pinned unless the user scrolled up to read.
-  useEffect(() => {
-    const inner = innerRef.current;
-    if (!inner) return;
-    const observer = new ResizeObserver(() => atBottom.current && scrollToBottom());
-    observer.observe(inner);
-    return () => observer.disconnect();
-  }, []);
-
-  const onScroll = () => {
-    const list = listRef.current;
-    if (list) atBottom.current = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
-  };
+  const { listRef, innerRef, onScroll } = useStickToBottom(messages.length);
 
   const send = (e: FormEvent) => {
     e.preventDefault();
